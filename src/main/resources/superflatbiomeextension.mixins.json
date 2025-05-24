@@ -1,0 +1,20 @@
+{
+  "required": true,
+  "package": "com.mikitellurium.superflatbiomeextension.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ChunkNoiseSamplerAccessor",
+    "DensityFunctionsAccessor",
+    "DimensionOptionsRegistryHolderMixin",
+    "GenerationShapeConfigAccessor",
+    "ServerChunkLoadingManagerMixin",
+    "SinglePoolElementMixin",
+    "StructurePoolBasedGeneratorMixin",
+    "StructureTemplateMixin",
+    "SurfaceBuilderMixin",
+    "WoodlandMansionStructureMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
