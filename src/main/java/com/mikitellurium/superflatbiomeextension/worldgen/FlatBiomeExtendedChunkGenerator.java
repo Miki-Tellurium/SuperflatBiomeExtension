@@ -7,10 +7,11 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.SharedConstants;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.registry.*;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.RegistryOps;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.structure.StructureSet;
-import net.minecraft.structure.StructureSetKeys;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ChunkRegion;
@@ -42,21 +43,18 @@ public class FlatBiomeExtendedChunkGenerator extends ChunkGenerator {
             instance -> instance.group(
                             BiomeSource.CODEC.fieldOf("biome_source").forGetter(ChunkGenerator::getBiomeSource),
                             FlatBiomeExtendedGeneratorConfig.CODEC.fieldOf("config").forGetter((generator) -> generator.config),
-                            RegistryOps.getEntryCodec(BiomeKeys.DEEP_DARK),
-                            RegistryOps.getEntryCodec(StructureSetKeys.OCEAN_MONUMENTS)
+                            RegistryOps.getEntryCodec(BiomeKeys.DEEP_DARK)
                     )
                     .apply(instance, instance.stable(FlatBiomeExtendedChunkGenerator::new))
     );
 
     private final FlatBiomeExtendedGeneratorConfig config;
     private final AquiferSampler.FluidLevelSampler fluidLevelSampler;
-    private final RegistryEntry<StructureSet> structure;
 
-    public FlatBiomeExtendedChunkGenerator(BiomeSource biomeSource, FlatBiomeExtendedGeneratorConfig config, RegistryEntry<Biome> biome, RegistryEntry<StructureSet> structure) {
+    public FlatBiomeExtendedChunkGenerator(BiomeSource biomeSource, FlatBiomeExtendedGeneratorConfig config, RegistryEntry<Biome> biome) {
         super(new FixedBiomeSource(biome), Util.memoize(config::createGenerationSettings));
         this.config = config;
         this.fluidLevelSampler = (x, y, z) -> new AquiferSampler.FluidLevel(y, Blocks.AIR.getDefaultState());
-        this.structure = structure;
     }
 
     @Override
@@ -73,7 +71,7 @@ public class FlatBiomeExtendedChunkGenerator extends ChunkGenerator {
         if (this.config.hasStructures()) {
             return super.createStructurePlacementCalculator(structureSetRegistry, noiseConfig, seed);
         }
-        return StructurePlacementCalculator.create(noiseConfig, seed, this.biomeSource, Stream.of(structure));
+        return StructurePlacementCalculator.create(noiseConfig, seed, this.biomeSource, Stream.of());
     }
 
     @Override
