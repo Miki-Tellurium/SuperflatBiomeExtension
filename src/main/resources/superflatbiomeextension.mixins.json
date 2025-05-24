@@ -8,9 +8,6 @@
     "DimensionOptionsRegistryHolderMixin",
     "GenerationShapeConfigAccessor",
     "ServerChunkLoadingManagerMixin",
-    "SinglePoolElementMixin",
-    "StructurePoolBasedGeneratorMixin",
-    "StructureTemplateMixin",
     "SurfaceBuilderMixin",
     "WoodlandMansionStructureMixin"
   ],
