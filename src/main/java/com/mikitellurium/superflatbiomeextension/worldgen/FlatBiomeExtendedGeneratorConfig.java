@@ -57,7 +57,7 @@ public class FlatBiomeExtendedGeneratorConfig {
         this.settings = this.createDefaultSettings();
     }
 
-    public ChunkGeneratorSettings getSettings() {
+    public ChunkGeneratorSettings getChunkGeneratorSettings() {
         return settings;
     }
 
