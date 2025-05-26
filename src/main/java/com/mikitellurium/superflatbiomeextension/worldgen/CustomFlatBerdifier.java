@@ -91,6 +91,7 @@ public class CustomFlatBerdifier implements DensityFunction.NoisePos {
         this.threshold = threshold;
     }
 
+    // Always updatePosition() before sampling
     public BlockState sampleBlockState() {
         double sample = this.sample();
         if (sample <= threshold) {
