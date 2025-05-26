@@ -8,21 +8,16 @@ import net.minecraft.SharedConstants;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.RegistryOps;
 import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.structure.StructureSet;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ChunkRegion;
 import net.minecraft.world.HeightLimitView;
 import net.minecraft.world.Heightmap;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeKeys;
 import net.minecraft.world.biome.source.BiomeAccess;
 import net.minecraft.world.biome.source.BiomeSource;
 import net.minecraft.world.biome.source.BiomeSupplier;
-import net.minecraft.world.biome.source.FixedBiomeSource;
 import net.minecraft.world.chunk.BelowZeroRetrogen;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.HeightContext;
@@ -42,8 +37,7 @@ public class FlatBiomeExtendedChunkGenerator extends ChunkGenerator {
     public static final MapCodec<FlatBiomeExtendedChunkGenerator> CODEC = RecordCodecBuilder.mapCodec(
             instance -> instance.group(
                             BiomeSource.CODEC.fieldOf("biome_source").forGetter(ChunkGenerator::getBiomeSource),
-                            FlatBiomeExtendedGeneratorConfig.CODEC.fieldOf("config").forGetter((generator) -> generator.config),
-                            RegistryOps.getEntryCodec(BiomeKeys.DEEP_DARK)
+                            FlatBiomeExtendedGeneratorConfig.CODEC.fieldOf("config").forGetter((generator) -> generator.config)
                     )
                     .apply(instance, instance.stable(FlatBiomeExtendedChunkGenerator::new))
     );
@@ -51,8 +45,8 @@ public class FlatBiomeExtendedChunkGenerator extends ChunkGenerator {
     private final FlatBiomeExtendedGeneratorConfig config;
     private final AquiferSampler.FluidLevelSampler fluidLevelSampler;
 
-    public FlatBiomeExtendedChunkGenerator(BiomeSource biomeSource, FlatBiomeExtendedGeneratorConfig config, RegistryEntry<Biome> biome) {
-        super(new FixedBiomeSource(biome), Util.memoize(config::createGenerationSettings));
+    public FlatBiomeExtendedChunkGenerator(BiomeSource biomeSource, FlatBiomeExtendedGeneratorConfig config) {
+        super(biomeSource, Util.memoize(config::createGenerationSettings));
         this.config = config;
         this.fluidLevelSampler = (x, y, z) -> new AquiferSampler.FluidLevel(y, Blocks.AIR.getDefaultState());
     }
@@ -63,7 +57,7 @@ public class FlatBiomeExtendedChunkGenerator extends ChunkGenerator {
     }
 
     public FlatBiomeExtendedGeneratorConfig getConfig() {
-        return config;
+        return this.config;
     }
 
     @Override
@@ -74,10 +68,6 @@ public class FlatBiomeExtendedChunkGenerator extends ChunkGenerator {
         return StructurePlacementCalculator.create(noiseConfig, seed, this.biomeSource, Stream.of());
     }
 
-    @Override
-    public void carve(ChunkRegion chunkRegion, long seed, NoiseConfig noiseConfig, BiomeAccess biomeAccess, StructureAccessor structureAccessor, Chunk chunk) {
-    }
-
     private ChunkNoiseSampler createChunkNoiseSampler(Chunk chunk, StructureAccessor world, Blender blender, NoiseConfig noiseConfig) {
         return ChunkNoiseSampler.create(chunk, noiseConfig, StructureWeightSampler.createStructureWeightSampler(world, chunk.getPos()), this.config.getSettings(), this.fluidLevelSampler, blender);
     }
@@ -85,17 +75,11 @@ public class FlatBiomeExtendedChunkGenerator extends ChunkGenerator {
     @Override
     public CompletableFuture<Chunk> populateBiomes(NoiseConfig noiseConfig, Blender blender, StructureAccessor structureAccessor, Chunk chunk) {
         return CompletableFuture.supplyAsync(() -> {
-            this.populateBiomes(blender, noiseConfig, structureAccessor, chunk);
+            ChunkNoiseSampler chunkNoiseSampler = chunk.getOrCreateChunkNoiseSampler((c) -> this.createChunkNoiseSampler(c, structureAccessor, blender, noiseConfig));
+            BiomeSupplier biomeSupplier = BelowZeroRetrogen.getBiomeSupplier(blender.getBiomeSupplier(this.biomeSource), chunk);
+            chunk.populateBiomes(biomeSupplier, ((ChunkNoiseSamplerAccessor) chunkNoiseSampler).invokeCreateMultiNoiseSampler(noiseConfig.getNoiseRouter(), this.config.getSettings().spawnTarget()));
             return chunk;
         }, Util.getMainWorkerExecutor().named("init_biomes"));
-    }
-
-    private void populateBiomes(Blender blender, NoiseConfig noiseConfig, StructureAccessor structureAccessor, Chunk chunk) {
-        ChunkNoiseSampler chunkNoiseSampler = chunk.getOrCreateChunkNoiseSampler(
-                (c) -> this.createChunkNoiseSampler(c, structureAccessor, blender, noiseConfig)
-        );
-        BiomeSupplier biomeSupplier = BelowZeroRetrogen.getBiomeSupplier(blender.getBiomeSupplier(this.biomeSource), chunk);
-        chunk.populateBiomes(biomeSupplier, ((ChunkNoiseSamplerAccessor) chunkNoiseSampler).invokeCreateMultiNoiseSampler(noiseConfig.getNoiseRouter(), this.config.getSettings().spawnTarget()));
     }
 
     @Override
@@ -122,26 +106,30 @@ public class FlatBiomeExtendedChunkGenerator extends ChunkGenerator {
     @Override
     public CompletableFuture<Chunk> populateNoise(Blender blender, NoiseConfig noiseConfig, StructureAccessor structureAccessor, Chunk chunk) {
         final int height = config.getHeight();
-        BlockPos.Mutable mutable = new BlockPos.Mutable();
         Heightmap heightmap = chunk.getHeightmap(Heightmap.Type.OCEAN_FLOOR_WG);
         Heightmap heightmap2 = chunk.getHeightmap(Heightmap.Type.WORLD_SURFACE_WG);
+        CustomFlatBerdifier customFlatBerdifier = CustomFlatBerdifier.create(chunk.getPos(), blender, structureAccessor, noiseConfig,
+                (blockPos) -> blockPos.getY() == this.getMinimumY() ? Blocks.BEDROCK.getDefaultState() : this.config.getSettings().defaultBlock(),
+                (random) -> -0.1 + random.nextDouble() * 0.01);
 
-        for (int i = 0; i < Math.min(chunk.getHeight(), height); i++) {
-            BlockState blockState = i == 0 ? Blocks.BEDROCK.getDefaultState() : this.config.getSettings().defaultBlock();
-            if (blockState != null) {
-                int j = chunk.getBottomY() + i;
-
-                for (int k = 0; k < 16; k++) {
-                    for (int l = 0; l < 16; l++) {
-                        chunk.setBlockState(mutable.set(k, j, l), blockState);
-                        heightmap.trackUpdate(k, j, l, blockState);
-                        heightmap2.trackUpdate(k, j, l, blockState);
+        return CompletableFuture.supplyAsync(() -> {
+            BlockPos.Mutable mutable = new BlockPos.Mutable();
+            for (int i = 0; i < Math.min(chunk.getHeight(), height); i++) {
+                int y = chunk.getBottomY() + i;
+                for (int x = 0; x < 16; x++) {
+                    for (int z = 0; z < 16; z++) {
+                        customFlatBerdifier.updatePosition(mutable.set(x, y, z));
+                        BlockState blockState = customFlatBerdifier.sampleBlockState();
+                        if (!blockState.isAir()) {
+                            chunk.setBlockState(mutable, blockState);
+                            heightmap.trackUpdate(x, y, z, blockState);
+                            heightmap2.trackUpdate(x, y, z, blockState);
+                        }
                     }
                 }
             }
-        }
-
-        return CompletableFuture.completedFuture(chunk);
+            return chunk;
+        });
     }
 
     @Override
@@ -160,6 +148,10 @@ public class FlatBiomeExtendedChunkGenerator extends ChunkGenerator {
         BlockState[] blockStates = new BlockState[this.config.getHeight()];
         Arrays.fill(blockStates, this.config.getSettings().defaultBlock());
         return new VerticalBlockSample(world.getBottomY(), blockStates);
+    }
+
+    @Override
+    public void carve(ChunkRegion chunkRegion, long seed, NoiseConfig noiseConfig, BiomeAccess biomeAccess, StructureAccessor structureAccessor, Chunk chunk) {
     }
 
     @Override
