@@ -42,7 +42,6 @@ public class FlatBiomeExtendedChunkGenerator extends ChunkGenerator {
                     )
                     .apply(instance, instance.stable(FlatBiomeExtendedChunkGenerator::new))
     );
-
     private final FlatBiomeExtendedGeneratorConfig config;
     private final AquiferSampler.FluidLevelSampler fluidLevelSampler;
 
