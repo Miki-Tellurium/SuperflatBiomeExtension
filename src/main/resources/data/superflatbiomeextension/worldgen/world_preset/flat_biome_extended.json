@@ -6,7 +6,7 @@
         "type": "superflatbiomeextension:flat_biome_extended",
         "biome_source": {
           "type": "minecraft:multi_noise",
-          "preset": "minecraft:overworld"
+          "preset": "superflatbiomeextension:overworld_flat"
         },
         "config": {
           "world_height": 64,

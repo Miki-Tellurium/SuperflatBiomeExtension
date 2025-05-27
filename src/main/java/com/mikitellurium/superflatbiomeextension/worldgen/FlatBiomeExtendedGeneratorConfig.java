@@ -2,6 +2,7 @@ package com.mikitellurium.superflatbiomeextension.worldgen;
 
 import com.mikitellurium.superflatbiomeextension.mixin.DensityFunctionsAccessor;
 import com.mikitellurium.superflatbiomeextension.mixin.GenerationShapeConfigAccessor;
+import com.mikitellurium.superflatbiomeextension.worldgen.biome.FlatBiomeParameters;
 import com.mikitellurium.superflatbiomeextension.worldgen.biome.ModSurfaceRules;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -15,7 +16,6 @@ import net.minecraft.registry.entry.RegistryEntryList;
 import net.minecraft.util.math.noise.DoublePerlinNoiseSampler;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.GenerationSettings;
-import net.minecraft.world.biome.source.util.VanillaBiomeParameters;
 import net.minecraft.world.gen.GenerationStep;
 import net.minecraft.world.gen.chunk.ChunkGeneratorSettings;
 import net.minecraft.world.gen.densityfunction.DensityFunction;
@@ -24,6 +24,8 @@ import net.minecraft.world.gen.feature.PlacedFeature;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class FlatBiomeExtendedGeneratorConfig {
     public static final Codec<FlatBiomeExtendedGeneratorConfig> CODEC = RecordCodecBuilder.create(
@@ -85,7 +87,7 @@ public class FlatBiomeExtendedGeneratorConfig {
                 Blocks.WATER.getDefaultState(),
                 DensityFunctionsAccessor.invokeCreateSurfaceNoiseRouter(densityFunctionRegistry, noiseParametersRegistry, false, false),
                 ModSurfaceRules.createDefaultModSurfaceRule(this.surfaceY, this.generateWater()),
-                new VanillaBiomeParameters().getSpawnSuitabilityNoises(),
+                new FlatBiomeParameters().getSpawnSuitabilityNoises(),
                 this.surfaceY - 1,
                 false,
                 false,
