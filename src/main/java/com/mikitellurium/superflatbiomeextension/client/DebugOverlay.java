@@ -19,6 +19,9 @@ public class DebugOverlay implements LayeredDrawer.Layer {
 
     @Override
     public void render(DrawContext context, RenderTickCounter tickCounter) {
+        if (MinecraftClient.getInstance().inGameHud.getDebugHud().shouldShowDebugHud()) {
+            return;
+        }
         y = 2;
         MinecraftClient minecraft = MinecraftClient.getInstance();
         ClientWorld world = minecraft.world;
