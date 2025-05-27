@@ -879,11 +879,11 @@ public class FlatBiomeParameters {
      * it will be near mountains.
      */
     private void writeCaveBiomes(Consumer<Pair<MultiNoiseUtil.NoiseHypercube, RegistryKey<Biome>>> parameters) {
-        this.writeCaveBiomeParameters(
+        this.writeDeepDarkParameters(
                 parameters,
                 this.defaultParameter,
                 this.defaultParameter,
-                MultiNoiseUtil.ParameterRange.of(0.999F, 1.0F), // Changed to make dripstone more rare
+                MultiNoiseUtil.ParameterRange.of(0.8F, 1.0F),
                 this.defaultParameter,
                 this.defaultParameter,
                 0.0F,
@@ -892,7 +892,7 @@ public class FlatBiomeParameters {
         this.writeCaveBiomeParameters(
                 parameters,
                 this.defaultParameter,
-                MultiNoiseUtil.ParameterRange.of(0.75F, 1.0F), // Changed to make lush caves more rare
+                MultiNoiseUtil.ParameterRange.of(0.7F, 1.0F),
                 this.defaultParameter,
                 this.defaultParameter,
                 this.defaultParameter,
@@ -1069,7 +1069,7 @@ public class FlatBiomeParameters {
                 )
         );
     }
-
+    // Changed depth for lush caves to be deeper
     private void writeCaveBiomeParameters(
             Consumer<Pair<MultiNoiseUtil.NoiseHypercube, RegistryKey<Biome>>> parameters,
             MultiNoiseUtil.ParameterRange temperature,
@@ -1082,12 +1082,12 @@ public class FlatBiomeParameters {
     ) {
         parameters.accept(
                 Pair.of(
-                        MultiNoiseUtil.createNoiseHypercube(temperature, humidity, continentalness, erosion, MultiNoiseUtil.ParameterRange.of(0.2F, 0.9F), weirdness, offset),
+                        MultiNoiseUtil.createNoiseHypercube(temperature, humidity, continentalness, erosion, MultiNoiseUtil.ParameterRange.of(0.9F), weirdness, offset),
                         biome
                 )
         );
     }
-
+    // Changed depth for dripstone caves to be use deep dark settings
     private void writeDeepDarkParameters(
             Consumer<Pair<MultiNoiseUtil.NoiseHypercube, RegistryKey<Biome>>> parameters,
             MultiNoiseUtil.ParameterRange temperature,
