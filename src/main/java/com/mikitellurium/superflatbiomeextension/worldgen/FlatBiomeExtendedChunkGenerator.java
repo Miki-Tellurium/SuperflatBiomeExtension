@@ -1,6 +1,5 @@
 package com.mikitellurium.superflatbiomeextension.worldgen;
 
-import com.mikitellurium.superflatbiomeextension.mixin.ChunkNoiseSamplerAccessor;
 import com.mikitellurium.superflatbiomeextension.mixinutil.FlatSurfaceBuilder;
 import com.mikitellurium.superflatbiomeextension.worldgen.noise.CustomFlatBerdifier;
 import com.mojang.serialization.MapCodec;
@@ -18,8 +17,6 @@ import net.minecraft.world.HeightLimitView;
 import net.minecraft.world.Heightmap;
 import net.minecraft.world.biome.source.BiomeAccess;
 import net.minecraft.world.biome.source.BiomeSource;
-import net.minecraft.world.biome.source.BiomeSupplier;
-import net.minecraft.world.chunk.BelowZeroRetrogen;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.HeightContext;
 import net.minecraft.world.gen.StructureAccessor;
@@ -70,16 +67,6 @@ public class FlatBiomeExtendedChunkGenerator extends ChunkGenerator {
 
     private ChunkNoiseSampler createChunkNoiseSampler(Chunk chunk, StructureAccessor world, Blender blender, NoiseConfig noiseConfig) {
         return ChunkNoiseSampler.create(chunk, noiseConfig, StructureWeightSampler.createStructureWeightSampler(world, chunk.getPos()), this.config.getChunkGeneratorSettings(), this.fluidLevelSampler, blender);
-    }
-
-    @Override
-    public CompletableFuture<Chunk> populateBiomes(NoiseConfig noiseConfig, Blender blender, StructureAccessor structureAccessor, Chunk chunk) {
-        return CompletableFuture.supplyAsync(() -> {
-            ChunkNoiseSampler chunkNoiseSampler = chunk.getOrCreateChunkNoiseSampler((c) -> this.createChunkNoiseSampler(c, structureAccessor, blender, noiseConfig));
-            BiomeSupplier biomeSupplier = BelowZeroRetrogen.getBiomeSupplier(blender.getBiomeSupplier(this.biomeSource), chunk);
-            chunk.populateBiomes(biomeSupplier, ((ChunkNoiseSamplerAccessor) chunkNoiseSampler).invokeCreateMultiNoiseSampler(noiseConfig.getNoiseRouter(), this.config.getChunkGeneratorSettings().spawnTarget()));
-            return chunk;
-        }, Util.getMainWorkerExecutor().named("init_biomes"));
     }
 
     @Override
