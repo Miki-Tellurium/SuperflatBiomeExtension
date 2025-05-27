@@ -25,6 +25,7 @@
 	"mixins": [
 		"superflatbiomeextension.mixins.json"
 	],
+	"accessWidener" : "superflatbiomeextension.accesswidener",
 	"depends": {
 		"fabricloader": ">=0.16.14",
 		"minecraft": "~1.21.5",
