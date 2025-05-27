@@ -1,4 +1,4 @@
-package com.mikitellurium.superflatbiomeextension.worldgen;
+package com.mikitellurium.superflatbiomeextension.worldgen.biome;
 
 import com.google.common.collect.ImmutableList;
 import net.minecraft.block.Block;

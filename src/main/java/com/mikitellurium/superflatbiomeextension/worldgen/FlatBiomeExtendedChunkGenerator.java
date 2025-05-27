@@ -2,6 +2,7 @@ package com.mikitellurium.superflatbiomeextension.worldgen;
 
 import com.mikitellurium.superflatbiomeextension.mixin.ChunkNoiseSamplerAccessor;
 import com.mikitellurium.superflatbiomeextension.mixinutil.FlatSurfaceBuilder;
+import com.mikitellurium.superflatbiomeextension.worldgen.noise.CustomFlatBerdifier;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.SharedConstants;
@@ -69,7 +70,7 @@ public class FlatBiomeExtendedChunkGenerator extends ChunkGenerator {
     }
 
     private ChunkNoiseSampler createChunkNoiseSampler(Chunk chunk, StructureAccessor world, Blender blender, NoiseConfig noiseConfig) {
-        return ChunkNoiseSampler.create(chunk, noiseConfig, StructureWeightSampler.createStructureWeightSampler(world, chunk.getPos()), this.config.getSettings(), this.fluidLevelSampler, blender);
+        return ChunkNoiseSampler.create(chunk, noiseConfig, StructureWeightSampler.createStructureWeightSampler(world, chunk.getPos()), this.config.getChunkGeneratorSettings(), this.fluidLevelSampler, blender);
     }
 
     @Override
@@ -77,7 +78,7 @@ public class FlatBiomeExtendedChunkGenerator extends ChunkGenerator {
         return CompletableFuture.supplyAsync(() -> {
             ChunkNoiseSampler chunkNoiseSampler = chunk.getOrCreateChunkNoiseSampler((c) -> this.createChunkNoiseSampler(c, structureAccessor, blender, noiseConfig));
             BiomeSupplier biomeSupplier = BelowZeroRetrogen.getBiomeSupplier(blender.getBiomeSupplier(this.biomeSource), chunk);
-            chunk.populateBiomes(biomeSupplier, ((ChunkNoiseSamplerAccessor) chunkNoiseSampler).invokeCreateMultiNoiseSampler(noiseConfig.getNoiseRouter(), this.config.getSettings().spawnTarget()));
+            chunk.populateBiomes(biomeSupplier, ((ChunkNoiseSamplerAccessor) chunkNoiseSampler).invokeCreateMultiNoiseSampler(noiseConfig.getNoiseRouter(), this.config.getChunkGeneratorSettings().spawnTarget()));
             return chunk;
         }, Util.getMainWorkerExecutor().named("init_biomes"));
     }
@@ -87,7 +88,7 @@ public class FlatBiomeExtendedChunkGenerator extends ChunkGenerator {
         if (!SharedConstants.isOutsideGenerationArea(chunk.getPos())) {
             HeightContext heightContext = new HeightContext(this, region);
             ChunkNoiseSampler chunkNoiseSampler = chunk.getOrCreateChunkNoiseSampler((c) -> this.createChunkNoiseSampler(c, structureAccessor, Blender.getBlender(region), noiseConfig));
-            ChunkGeneratorSettings chunkGeneratorSettings = this.config.getSettings();
+            ChunkGeneratorSettings chunkGeneratorSettings = this.config.getChunkGeneratorSettings();
             SurfaceBuilder surfaceBuilder = noiseConfig.getSurfaceBuilder();
             ((FlatSurfaceBuilder)surfaceBuilder).mixin$setFlat();
             noiseConfig.getSurfaceBuilder().buildSurface(noiseConfig, region.getBiomeAccess(), region.getRegistryManager().getOrThrow(RegistryKeys.BIOME), chunkGeneratorSettings.usesLegacyRandom(), heightContext, chunk, chunkNoiseSampler, chunkGeneratorSettings.surfaceRule());
@@ -109,7 +110,7 @@ public class FlatBiomeExtendedChunkGenerator extends ChunkGenerator {
         Heightmap heightmap = chunk.getHeightmap(Heightmap.Type.OCEAN_FLOOR_WG);
         Heightmap heightmap2 = chunk.getHeightmap(Heightmap.Type.WORLD_SURFACE_WG);
         CustomFlatBerdifier customFlatBerdifier = CustomFlatBerdifier.create(chunk.getPos(), blender, structureAccessor, noiseConfig,
-                (blockPos) -> blockPos.getY() == this.getMinimumY() ? Blocks.BEDROCK.getDefaultState() : this.config.getSettings().defaultBlock(),
+                (blockPos) -> blockPos.getY() == this.getMinimumY() ? Blocks.BEDROCK.getDefaultState() : this.config.getChunkGeneratorSettings().defaultBlock(),
                 (random) -> -0.1 + random.nextDouble() * 0.01);
 
         return CompletableFuture.supplyAsync(() -> {
@@ -135,7 +136,7 @@ public class FlatBiomeExtendedChunkGenerator extends ChunkGenerator {
     @Override
     public int getHeight(int x, int z, Heightmap.Type heightmap, HeightLimitView world, NoiseConfig noiseConfig) {
         for (int i = Math.min(this.config.getHeight(), world.getTopYInclusive()); i >= 0; i--) {
-            BlockState blockState = this.config.getSettings().defaultBlock();
+            BlockState blockState = this.config.getChunkGeneratorSettings().defaultBlock();
             if (blockState != null && heightmap.getBlockPredicate().test(blockState)) {
                 return world.getBottomY() + i;
             }
@@ -146,7 +147,7 @@ public class FlatBiomeExtendedChunkGenerator extends ChunkGenerator {
     @Override
     public VerticalBlockSample getColumnSample(int x, int z, HeightLimitView world, NoiseConfig noiseConfig) {
         BlockState[] blockStates = new BlockState[this.config.getHeight()];
-        Arrays.fill(blockStates, this.config.getSettings().defaultBlock());
+        Arrays.fill(blockStates, this.config.getChunkGeneratorSettings().defaultBlock());
         return new VerticalBlockSample(world.getBottomY(), blockStates);
     }
 
@@ -160,16 +161,16 @@ public class FlatBiomeExtendedChunkGenerator extends ChunkGenerator {
 
     @Override
     public int getMinimumY() {
-        return this.config.getSettings().generationShapeConfig().minimumY();
+        return this.config.getChunkGeneratorSettings().generationShapeConfig().minimumY();
     }
 
     @Override
     public int getWorldHeight() {
-        return this.config.getSettings().generationShapeConfig().height();
+        return this.config.getChunkGeneratorSettings().generationShapeConfig().height();
     }
 
     @Override
     public int getSeaLevel() {
-        return this.config.getSettings().seaLevel();
+        return this.config.getChunkGeneratorSettings().seaLevel();
     }
 }

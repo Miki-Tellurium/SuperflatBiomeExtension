@@ -2,6 +2,7 @@ package com.mikitellurium.superflatbiomeextension.worldgen;
 
 import com.mikitellurium.superflatbiomeextension.mixin.DensityFunctionsAccessor;
 import com.mikitellurium.superflatbiomeextension.mixin.GenerationShapeConfigAccessor;
+import com.mikitellurium.superflatbiomeextension.worldgen.biome.ModSurfaceRules;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.block.Blocks;

@@ -1,4 +1,4 @@
-package com.mikitellurium.superflatbiomeextension.worldgen;
+package com.mikitellurium.superflatbiomeextension.worldgen.noise;
 
 import com.mikitellurium.superflatbiomeextension.SuperflatBiomeExtension;
 import com.mikitellurium.superflatbiomeextension.mixin.JigsawStructureAccessor;
