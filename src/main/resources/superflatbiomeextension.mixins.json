@@ -9,8 +9,11 @@
     "GenerationShapeConfigAccessor",
     "JigsawStructureAccessor",
     "ServerChunkLoadingManagerMixin",
-    "SurfaceBuilderMixin",
-    "WoodlandMansionStructureMixin"
+    "StructureAccessors$Jigsaw",
+    "StructureAccessors$OceanMonumentBase",
+    "StructureFixMix$OceanMonument",
+    "StructureFixMix$WoodlandMansion",
+    "SurfaceBuilderMixin"
   ],
   "injectors": {
     "defaultRequire": 1
