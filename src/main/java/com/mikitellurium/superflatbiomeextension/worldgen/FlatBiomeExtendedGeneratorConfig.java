@@ -24,8 +24,6 @@ import net.minecraft.world.gen.feature.PlacedFeature;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class FlatBiomeExtendedGeneratorConfig {
     public static final Codec<FlatBiomeExtendedGeneratorConfig> CODEC = RecordCodecBuilder.create(
