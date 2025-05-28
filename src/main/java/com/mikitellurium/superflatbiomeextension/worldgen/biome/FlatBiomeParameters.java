@@ -1082,12 +1082,12 @@ public class FlatBiomeParameters {
     ) {
         parameters.accept(
                 Pair.of(
-                        MultiNoiseUtil.createNoiseHypercube(temperature, humidity, continentalness, erosion, MultiNoiseUtil.ParameterRange.of(0.9F), weirdness, offset),
+                        MultiNoiseUtil.createNoiseHypercube(temperature, humidity, continentalness, erosion, MultiNoiseUtil.ParameterRange.of(1.0F), weirdness, offset),
                         biome
                 )
         );
     }
-    // Changed depth for dripstone caves to be use deep dark settings
+    // Changed depth for dripstone caves to use deep dark settings
     private void writeDeepDarkParameters(
             Consumer<Pair<MultiNoiseUtil.NoiseHypercube, RegistryKey<Biome>>> parameters,
             MultiNoiseUtil.ParameterRange temperature,
