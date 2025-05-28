@@ -1,7 +1,7 @@
 package com.mikitellurium.superflatbiomeextension.worldgen.noise;
 
 import com.mikitellurium.superflatbiomeextension.SuperflatBiomeExtension;
-import com.mikitellurium.superflatbiomeextension.mixin.JigsawStructureAccessor;
+import com.mikitellurium.superflatbiomeextension.mixin.StructureAccessor;
 import com.mikitellurium.superflatbiomeextension.util.FastId;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
@@ -16,7 +16,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.math.random.Random;
-import net.minecraft.world.gen.StructureAccessor;
 import net.minecraft.world.gen.StructureTerrainAdaptation;
 import net.minecraft.world.gen.StructureWeightSampler;
 import net.minecraft.world.gen.chunk.Blender;
@@ -36,19 +35,19 @@ public class CustomFlatBerdifier implements DensityFunction.NoisePos {
     private final double threshold;
     private final Function<BlockPos, BlockState> stateFunction;
 
-    public static CustomFlatBerdifier create(ChunkPos chunkPos, Blender blender, StructureAccessor structureAccessor, NoiseConfig noiseConfig, Function<BlockPos, BlockState> stateFunction, Function<Random, Double> thresholdFunction) {
+    public static CustomFlatBerdifier create(ChunkPos chunkPos, Blender blender, net.minecraft.world.gen.StructureAccessor structureAccessor, NoiseConfig noiseConfig, Function<BlockPos, BlockState> stateFunction, Function<Random, Double> thresholdFunction) {
         Random random = noiseConfig.getOrCreateRandomDeriver(WORLDGEN_REGION_RANDOM).split(chunkPos.getStartPos());
         return new CustomFlatBerdifier(chunkPos, blender, createFilteredWeightSampler(structureAccessor, chunkPos), stateFunction, thresholdFunction.apply(random));
     }
 
-    public static StructureWeightSampler createFilteredWeightSampler(StructureAccessor accessor, ChunkPos pos) {
+    public static StructureWeightSampler createFilteredWeightSampler(net.minecraft.world.gen.StructureAccessor accessor, ChunkPos pos) {
         int i = pos.getStartX();
         int j = pos.getStartZ();
         ObjectList<StructureWeightSampler.Piece> pieceList = new ObjectArrayList<>(10);
         ObjectList<JigsawJunction> junctionList = new ObjectArrayList<>(32);
         accessor.getStructureStarts(pos, (structure) -> {
             if (structure instanceof JigsawStructure) {
-                String jigsawName = ((JigsawStructureAccessor)structure).getStartJigsawName().map(Identifier::getPath).orElse(StringUtils.EMPTY);
+                String jigsawName = ((StructureAccessor.Jigsaw)structure).getStartJigsawName().map(Identifier::getPath).orElse(StringUtils.EMPTY);
                 return structure.getTerrainAdaptation() != StructureTerrainAdaptation.NONE && jigsawName.equals("city_anchor");
             }
             return false;
