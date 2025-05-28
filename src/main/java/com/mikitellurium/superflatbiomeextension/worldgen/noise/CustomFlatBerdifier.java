@@ -1,7 +1,7 @@
 package com.mikitellurium.superflatbiomeextension.worldgen.noise;
 
 import com.mikitellurium.superflatbiomeextension.SuperflatBiomeExtension;
-import com.mikitellurium.superflatbiomeextension.mixin.StructureAccessor;
+import com.mikitellurium.superflatbiomeextension.mixin.StructureAccessors;
 import com.mikitellurium.superflatbiomeextension.util.FastId;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
@@ -47,7 +47,7 @@ public class CustomFlatBerdifier implements DensityFunction.NoisePos {
         ObjectList<JigsawJunction> junctionList = new ObjectArrayList<>(32);
         accessor.getStructureStarts(pos, (structure) -> {
             if (structure instanceof JigsawStructure) {
-                String jigsawName = ((StructureAccessor.Jigsaw)structure).getStartJigsawName().map(Identifier::getPath).orElse(StringUtils.EMPTY);
+                String jigsawName = ((StructureAccessors.Jigsaw)structure).getStartJigsawName().map(Identifier::getPath).orElse(StringUtils.EMPTY);
                 return structure.getTerrainAdaptation() != StructureTerrainAdaptation.NONE && jigsawName.equals("city_anchor");
             }
             return false;
@@ -96,7 +96,7 @@ public class CustomFlatBerdifier implements DensityFunction.NoisePos {
         if (sample <= threshold) {
             SuperflatBiomeExtension.logger().info("Sample= {}, Threshold= {}", sample, threshold);
         }
-        return sample > threshold ? stateFunction.apply(this.pos.toImmutable()) : Blocks.AIR.getDefaultState();
+        return sample > threshold ? stateFunction.apply(this.pos.toImmutable()) : Blocks.CAVE_AIR.getDefaultState();
     }
 
     public double sample() {
