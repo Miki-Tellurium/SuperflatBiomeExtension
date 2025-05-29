@@ -2,6 +2,7 @@ package com.mikitellurium.superflatbiomeextension.worldgen;
 
 import com.mikitellurium.superflatbiomeextension.mixin.DensityFunctionsAccessor;
 import com.mikitellurium.superflatbiomeextension.mixin.GenerationShapeConfigAccessor;
+import com.mikitellurium.superflatbiomeextension.registry.GenerationShapeConfigRegistry;
 import com.mikitellurium.superflatbiomeextension.worldgen.biome.FlatBiomeParameters;
 import com.mikitellurium.superflatbiomeextension.worldgen.biome.ModSurfaceRules;
 import com.mojang.serialization.Codec;
@@ -18,6 +19,7 @@ import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.GenerationSettings;
 import net.minecraft.world.gen.GenerationStep;
 import net.minecraft.world.gen.chunk.ChunkGeneratorSettings;
+import net.minecraft.world.gen.chunk.GenerationShapeConfig;
 import net.minecraft.world.gen.densityfunction.DensityFunction;
 import net.minecraft.world.gen.feature.PlacedFeature;
 
@@ -28,24 +30,28 @@ import java.util.function.Predicate;
 public class FlatBiomeExtendedGeneratorConfig {
     public static final Codec<FlatBiomeExtendedGeneratorConfig> CODEC = RecordCodecBuilder.create(
             (instance) -> instance.group(
-                    Codec.INT.fieldOf("world_height").forGetter((config) -> config.height),
+                    GenerationShapeConfigRegistry.CODEC.optionalFieldOf("shape_config", GenerationShapeConfigRegistry.SURFACE).forGetter((config) -> config.shapeConfig),
+                    Codec.INT.fieldOf("layer_count").forGetter((config) -> config.layerCount),
                     Codec.BOOL.fieldOf("generate_water").forGetter((config) -> config.generateWater),
                     Codec.BOOL.fieldOf("has_features").forGetter((config) -> config.hasFeatures),
+                    Codec.BOOL.fieldOf("has_structures").forGetter(FlatBiomeExtendedGeneratorConfig::hasStructures),
                     Codec.BOOL.fieldOf("has_lava_lakes").forGetter(FlatBiomeExtendedGeneratorConfig::hasLavaLakes),
-                    Codec.BOOL.fieldOf("generate_ores").forGetter(FlatBiomeExtendedGeneratorConfig::generateOres),
-                    Codec.BOOL.fieldOf("has_structures").forGetter(FlatBiomeExtendedGeneratorConfig::hasStructures)
+                    Codec.BOOL.fieldOf("generate_ores").forGetter(FlatBiomeExtendedGeneratorConfig::generateOres)
             ).apply(instance, FlatBiomeExtendedGeneratorConfig::new)
     );
-    private final int height;
+    private final GenerationShapeConfig shapeConfig;
+    private final int layerCount;
     private final int surfaceY;
     private final boolean generateWater;
     private final boolean hasFeatures;
     private final Map<Integer, FeatureStepCheck> featureChecks;
     private final ChunkGeneratorSettings settings;
 
-    public FlatBiomeExtendedGeneratorConfig(int height, boolean generateWater, boolean hasFeatures, boolean lavaLakes, boolean generateOres, boolean hasStructures) {
-        this.height = height;
-        this.surfaceY = -64 + height;
+    public FlatBiomeExtendedGeneratorConfig(GenerationShapeConfig shapeConfig, int layerCount, boolean generateWater, boolean hasFeatures, boolean hasStructures, boolean lavaLakes, boolean generateOres) {
+        validateLayerCount(layerCount);
+        this.shapeConfig = shapeConfig;
+        this.layerCount = layerCount;
+        this.surfaceY = shapeConfig.minimumY() + layerCount;
         this.generateWater = generateWater;
         this.hasFeatures = hasFeatures;
         this.featureChecks = Map.of(
@@ -80,7 +86,7 @@ public class FlatBiomeExtendedGeneratorConfig {
         RegistryEntryLookup<DensityFunction> densityFunctionRegistry = lookup.getOrThrow(RegistryKeys.DENSITY_FUNCTION);
         RegistryEntryLookup<DoublePerlinNoiseSampler.NoiseParameters> noiseParametersRegistry = lookup.getOrThrow(RegistryKeys.NOISE_PARAMETERS);
         return new ChunkGeneratorSettings(
-                GenerationShapeConfigAccessor.getSURFACE(),
+                this.shapeConfig,
                 Blocks.STONE.getDefaultState(),
                 Blocks.WATER.getDefaultState(),
                 DensityFunctionsAccessor.invokeCreateSurfaceNoiseRouter(densityFunctionRegistry, noiseParametersRegistry, false, false),
@@ -94,8 +100,8 @@ public class FlatBiomeExtendedGeneratorConfig {
         );
     }
 
-    public int getHeight() {
-        return height;
+    public int getLayerCount() {
+        return layerCount;
     }
 
     public boolean generateWater() {
@@ -118,6 +124,12 @@ public class FlatBiomeExtendedGeneratorConfig {
         return featureChecks.get(GenerationStep.Feature.UNDERGROUND_STRUCTURES.ordinal()).isEnabled() ||
                 featureChecks.get(GenerationStep.Feature.SURFACE_STRUCTURES.ordinal()).isEnabled() ||
                 featureChecks.get(GenerationStep.Feature.STRONGHOLDS.ordinal()).isEnabled();
+    }
+
+    private static void validateLayerCount(int layerCount) {
+        if (layerCount < 1 || layerCount > 384) {
+            throw new IllegalArgumentException("Layer count must be between 1 and 384. Got: " + layerCount);
+        }
     }
 
     private record FeatureStepCheck(boolean isEnabled, GenerationStep.Feature featureStep) implements Predicate<Integer> {

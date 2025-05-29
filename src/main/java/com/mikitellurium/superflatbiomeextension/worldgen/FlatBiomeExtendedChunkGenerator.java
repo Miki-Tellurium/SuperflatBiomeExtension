@@ -92,7 +92,7 @@ public class FlatBiomeExtendedChunkGenerator extends ChunkGenerator {
 
     @Override
     public CompletableFuture<Chunk> populateNoise(Blender blender, NoiseConfig noiseConfig, StructureAccessor structureAccessor, Chunk chunk) {
-        final int height = config.getHeight();
+        final int height = config.getLayerCount();
         Heightmap heightmap = chunk.getHeightmap(Heightmap.Type.OCEAN_FLOOR_WG);
         Heightmap heightmap2 = chunk.getHeightmap(Heightmap.Type.WORLD_SURFACE_WG);
         CustomFlatBerdifier customFlatBerdifier = CustomFlatBerdifier.create(chunk.getPos(), blender, structureAccessor, noiseConfig,
@@ -102,7 +102,7 @@ public class FlatBiomeExtendedChunkGenerator extends ChunkGenerator {
         return CompletableFuture.supplyAsync(() -> {
             BlockPos.Mutable mutable = new BlockPos.Mutable();
             for (int i = 0; i < Math.min(chunk.getHeight(), height); i++) {
-                int y = chunk.getBottomY() + i;
+                int y = this.getMinimumY() + i;
                 for (int x = 0; x < 16; x++) {
                     for (int z = 0; z < 16; z++) {
                         customFlatBerdifier.updatePosition(mutable.set(x, y, z));
@@ -121,7 +121,7 @@ public class FlatBiomeExtendedChunkGenerator extends ChunkGenerator {
 
     @Override
     public int getHeight(int x, int z, Heightmap.Type heightmap, HeightLimitView world, NoiseConfig noiseConfig) {
-        for (int i = Math.min(this.config.getHeight(), world.getTopYInclusive()); i >= 0; i--) {
+        for (int i = Math.min(this.config.getLayerCount(), world.getTopYInclusive()); i >= 0; i--) {
             BlockState blockState = this.config.getChunkGeneratorSettings().defaultBlock();
             if (blockState != null && heightmap.getBlockPredicate().test(blockState)) {
                 return world.getBottomY() + i;
@@ -132,7 +132,7 @@ public class FlatBiomeExtendedChunkGenerator extends ChunkGenerator {
 
     @Override
     public VerticalBlockSample getColumnSample(int x, int z, HeightLimitView world, NoiseConfig noiseConfig) {
-        BlockState[] blockStates = new BlockState[this.config.getHeight()];
+        BlockState[] blockStates = new BlockState[this.config.getLayerCount()];
         Arrays.fill(blockStates, this.config.getChunkGeneratorSettings().defaultBlock());
         return new VerticalBlockSample(world.getBottomY(), blockStates);
     }

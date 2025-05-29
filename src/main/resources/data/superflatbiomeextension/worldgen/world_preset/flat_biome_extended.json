@@ -9,12 +9,13 @@
           "preset": "superflatbiomeextension:overworld_flat"
         },
         "config": {
-          "world_height": 64,
+          "shape_config" : "minecraft:surface",
+          "layer_count": 64,
           "generate_water": true,
-          "has_lava_lakes": false,
-          "generate_ores": false,
           "has_features": true,
-          "has_structures": true
+          "has_structures": true,
+          "has_lava_lakes": false,
+          "generate_ores": false
         }
       }
     },
