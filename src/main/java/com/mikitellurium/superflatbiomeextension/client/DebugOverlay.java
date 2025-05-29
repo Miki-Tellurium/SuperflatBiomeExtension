@@ -1,5 +1,6 @@
 package com.mikitellurium.superflatbiomeextension.client;
 
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
@@ -19,9 +20,7 @@ public class DebugOverlay implements LayeredDrawer.Layer {
 
     @Override
     public void render(DrawContext context, RenderTickCounter tickCounter) {
-        if (MinecraftClient.getInstance().inGameHud.getDebugHud().shouldShowDebugHud()) {
-            return;
-        }
+        if (!shouldShowDebugHud()) return;
         y = 2;
         MinecraftClient minecraft = MinecraftClient.getInstance();
         ClientWorld world = minecraft.world;
@@ -35,8 +34,6 @@ public class DebugOverlay implements LayeredDrawer.Layer {
                     String.format(Locale.ROOT, "Z: %.3f", player.getZ())
             );
         }
-//            String cameraY = String.valueOf(player.getCameraPosVec(tickCounter.getTickProgress(true)).y);
-//            write(context, cameraY);
     }
 
     private void write(DrawContext context, String... texts) {
@@ -44,5 +41,9 @@ public class DebugOverlay implements LayeredDrawer.Layer {
             context.drawText(textRenderer, text, 5, y, -1, false);
             y += textRenderer.fontHeight + 1;
         });
+    }
+
+    private boolean shouldShowDebugHud() {
+        return !MinecraftClient.getInstance().inGameHud.getDebugHud().shouldShowDebugHud();
     }
 }
