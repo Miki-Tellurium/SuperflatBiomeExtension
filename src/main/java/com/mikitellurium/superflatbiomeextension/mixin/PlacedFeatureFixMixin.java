@@ -34,10 +34,10 @@ public class PlacedFeatureFixMixin {
     public static class IceSpike {
         /*
          * Ice spikes only generate the packed ice pillar if the block pos y is above 50.
-         * This return 51 to allow ice spikes to generate in flat biomes where the sea level is below 50.
+         * This return 51 to allow ice spikes to generate the pillar in flat worlds where the sea level is below 50.
          */
         @WrapOperation(method = "generate", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/math/BlockPos;getY()I", ordinal = 1))
-        private int inject$fixGenerateHeight(BlockPos blockPos, Operation<Integer> original, @Local(argsOnly = true)FeatureContext<DefaultFeatureConfig> context) {
+        private int inject$fixPillarPlacement(BlockPos blockPos, Operation<Integer> original, @Local(argsOnly = true)FeatureContext<DefaultFeatureConfig> context) {
             if (context.getGenerator() instanceof FlatBiomeExtendedChunkGenerator flatGenerator) {
                 if (blockPos.getY() >= flatGenerator.getSeaLevel()) {
                     return original.call(new BlockPos(0, 51, 0));
