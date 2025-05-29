@@ -25,7 +25,10 @@ public class StructureFixMixin {
     public abstract static class WoodlandMansion {
         @Shadow
         protected abstract void addPieces(StructurePiecesCollector collector, Structure.Context context, BlockPos pos, BlockRotation rotation);
-
+        /*
+         * Mansions don't generate if their y coordinate is lower than 60, this allow mansions to
+         * generate at any height if the world is custom flat.
+         */
         @Inject(method = "getStructurePosition", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/math/BlockPos;getY()I"), cancellable = true)
         private void inject$returnPositionIfFlat(Structure.Context context, CallbackInfoReturnable<Optional<Structure.StructurePosition>> cir, @Local BlockRotation rotation, @Local BlockPos pos) {
             if (context.chunkGenerator() instanceof FlatBiomeExtendedChunkGenerator) {
@@ -35,6 +38,10 @@ public class StructureFixMixin {
     }
     @Mixin(OceanMonumentStructure.class)
     public static class OceanMonument {
+        /*
+         * Monuments always generate at y 39, this makes monuments always generate below sea level in custom flat worlds
+         * unless the surface is lower than the monument height which make the monument generate over the sea level.
+         */
         @SuppressWarnings("deprecation")
         @Inject(method = "addPieces", at = @At(value = "TAIL"))
         private static void inject$shiftStructure(StructurePiecesCollector collector, Structure.Context context, CallbackInfo ci) {
