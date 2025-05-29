@@ -8,6 +8,8 @@
     "DimensionOptionsRegistryHolderMixin",
     "GenerationShapeConfigAccessor",
     "JigsawStructureAccessor",
+    "PlacedFeatureFixMixin$Geode",
+    "PlacedFeatureFixMixin$IceSpike",
     "ServerChunkLoadingManagerMixin",
     "StructureAccessors$Jigsaw",
     "StructureAccessors$OceanMonumentBase",
