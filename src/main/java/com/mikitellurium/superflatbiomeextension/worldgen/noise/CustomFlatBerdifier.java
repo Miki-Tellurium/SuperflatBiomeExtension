@@ -93,9 +93,6 @@ public class CustomFlatBerdifier implements DensityFunction.NoisePos {
     // Always updatePosition() before sampling
     public BlockState sampleBlockState() {
         double sample = this.sample();
-        if (sample <= threshold) {
-            SuperflatBiomeExtension.logger().info("Sample= {}, Threshold= {}", sample, threshold);
-        }
         return sample > threshold ? stateFunction.apply(this.pos.toImmutable()) : Blocks.CAVE_AIR.getDefaultState();
     }
 
