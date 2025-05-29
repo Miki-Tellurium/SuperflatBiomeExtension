@@ -7,7 +7,6 @@ import net.minecraft.structure.StructurePiecesCollector;
 import net.minecraft.util.BlockRotation;
 import net.minecraft.util.math.BlockBox;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.gen.StructureAccessor;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.gen.structure.OceanMonumentStructure;
 import net.minecraft.world.gen.structure.Structure;
@@ -21,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Optional;
 
-public abstract class StructureFixMix {
+public class StructureFixMixin {
     @Mixin(WoodlandMansionStructure.class)
     public abstract static class WoodlandMansion {
         @Shadow
@@ -44,7 +43,7 @@ public abstract class StructureFixMix {
                 OceanMonumentGenerator.Base base = (OceanMonumentGenerator.Base) collector.toList().pieces().getFirst();
                 BlockBox boundingBox = base.getBoundingBox();
                 int maxAllowedShift = context.chunkGenerator().getMinimumY() - boundingBox.getMinY() + 2;
-                int shift = Math.max(chunkGenerator.getSeaLevel() - boundingBox.getMaxY() + context.random().nextBetween(-10, 10), maxAllowedShift);
+                int shift = Math.max(chunkGenerator.getSeaLevel() - boundingBox.getMaxY(), maxAllowedShift);
                 base.getBoundingBox().move(0, shift, 0);
                 for (OceanMonumentGenerator.Piece piece : ((StructureAccessors.OceanMonumentBase)base).getChildren()) {
                     piece.getBoundingBox().move(0, shift, 0);

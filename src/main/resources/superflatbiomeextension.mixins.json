@@ -11,8 +11,8 @@
     "ServerChunkLoadingManagerMixin",
     "StructureAccessors$Jigsaw",
     "StructureAccessors$OceanMonumentBase",
-    "StructureFixMix$OceanMonument",
-    "StructureFixMix$WoodlandMansion",
+    "StructureFixMixin$OceanMonument",
+    "StructureFixMixin$WoodlandMansion",
     "SurfaceBuilderMixin"
   ],
   "injectors": {
