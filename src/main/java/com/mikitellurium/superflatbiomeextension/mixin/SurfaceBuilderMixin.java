@@ -16,8 +16,11 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public abstract class SurfaceBuilderMixin implements FlatSurfaceBuilder {
     @Shadow protected abstract void placeBadlandsPillar(BlockColumn column, int x, int z, int surfaceY, HeightLimitView chunk);
     @Shadow protected abstract void placeIceberg(int minY, Biome biome, BlockColumn column, BlockPos.Mutable mutablePos, int x, int z, int surfaceY);
-
     @Unique private boolean isFlat = false;
+    /*
+     * This two redirects are used to prevent the vanilla SurfaceBuilder from placing
+     *  badlands pillars and icebergs in custom flat worlds.
+     */
 
     @Redirect(method = "buildSurface", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/gen/surfacebuilder/SurfaceBuilder;placeBadlandsPillar(Lnet/minecraft/world/gen/chunk/BlockColumn;IIILnet/minecraft/world/HeightLimitView;)V"))
     private void redirect$placeBadlandsPillar(SurfaceBuilder instance, BlockColumn column, int x, int z, int surfaceY, HeightLimitView chunk) {

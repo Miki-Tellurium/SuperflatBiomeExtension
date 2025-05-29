@@ -16,6 +16,10 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(ServerChunkLoadingManager.class)
 public abstract class ServerChunkLoadingManagerMixin {
+    /*
+     * Vanilla return empty NoiseConfig if the chunk generator is not a NoiseChunkGenerator instance.
+     * This creates the NoiseConfig correctly for FlatBiomeExtendedChunkGenerator instances.
+     */
     @WrapOperation(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/gen/noise/NoiseConfig;create(Lnet/minecraft/world/gen/chunk/ChunkGeneratorSettings;Lnet/minecraft/registry/RegistryEntryLookup;J)Lnet/minecraft/world/gen/noise/NoiseConfig;", ordinal = 1))
     private NoiseConfig wrapOperation$setNoiseConfig(ChunkGeneratorSettings chunkGeneratorSettings, RegistryEntryLookup<DoublePerlinNoiseSampler.NoiseParameters> noiseParametersLookup, long seed, Operation<NoiseConfig> original, @Local(argsOnly = true) ChunkGenerator chunkGenerator, @Local DynamicRegistryManager registryManager) {
         ChunkGeneratorSettings settings;
