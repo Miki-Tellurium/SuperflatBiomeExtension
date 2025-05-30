@@ -1,6 +1,6 @@
 package com.mikitellurium.superflatbiomeextension.mixin;
 
-import com.mikitellurium.superflatbiomeextension.worldgen.FlatBiomeExtendedChunkGenerator;
+import com.mikitellurium.superflatbiomeextension.worldgen.CustomFlatChunkGenerator;
 import net.minecraft.registry.Registry;
 import net.minecraft.world.dimension.DimensionOptions;
 import net.minecraft.world.dimension.DimensionOptionsRegistryHolder;
@@ -20,7 +20,7 @@ public class DimensionOptionsRegistryHolderMixin {
     @Inject(method = "getSpecialProperty", at = @At(value = "RETURN"), cancellable = true)
     private static void inject$setSpecialProperty(Registry<DimensionOptions> registry, CallbackInfoReturnable<LevelProperties.SpecialProperty> cir) {
         LevelProperties.SpecialProperty specialProperty = registry.getOptionalValue(DimensionOptions.OVERWORLD)
-                .filter(options -> options.chunkGenerator() instanceof FlatBiomeExtendedChunkGenerator)
+                .filter(options -> options.chunkGenerator() instanceof CustomFlatChunkGenerator)
                 .map(options -> LevelProperties.SpecialProperty.FLAT)
                 .orElse(cir.getReturnValue());
         cir.setReturnValue(specialProperty);

@@ -3,7 +3,7 @@ package com.mikitellurium.superflatbiomeextension.mixin;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
-import com.mikitellurium.superflatbiomeextension.worldgen.FlatBiomeExtendedChunkGenerator;
+import com.mikitellurium.superflatbiomeextension.worldgen.CustomFlatChunkGenerator;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.gen.feature.DefaultFeatureConfig;
 import net.minecraft.world.gen.feature.GeodeFeature;
@@ -23,7 +23,7 @@ public class PlacedFeatureFixMixin {
          */
         @Inject(method = "generate", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/BlockState;isAir()Z"), cancellable = true)
         private void inject$fixGenerateHeight(FeatureContext<GeodeFeatureConfig> context, CallbackInfoReturnable<Boolean> cir, @Local(ordinal = 1) BlockPos pos) {
-            if (context.getGenerator() instanceof FlatBiomeExtendedChunkGenerator flatGenerator) {
+            if (context.getGenerator() instanceof CustomFlatChunkGenerator flatGenerator) {
                 if (pos.getY() > flatGenerator.getSeaLevel() - 7) {
                     cir.setReturnValue(false);
                 }
@@ -38,7 +38,7 @@ public class PlacedFeatureFixMixin {
          */
         @WrapOperation(method = "generate", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/math/BlockPos;getY()I", ordinal = 1))
         private int inject$fixPillarPlacement(BlockPos blockPos, Operation<Integer> original, @Local(argsOnly = true)FeatureContext<DefaultFeatureConfig> context) {
-            if (context.getGenerator() instanceof FlatBiomeExtendedChunkGenerator flatGenerator) {
+            if (context.getGenerator() instanceof CustomFlatChunkGenerator flatGenerator) {
                 if (blockPos.getY() >= flatGenerator.getSeaLevel()) {
                     return original.call(new BlockPos(0, 51, 0));
                 }

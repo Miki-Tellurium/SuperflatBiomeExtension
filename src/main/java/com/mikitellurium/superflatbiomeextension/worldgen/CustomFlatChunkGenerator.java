@@ -31,18 +31,18 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
-public class FlatBiomeExtendedChunkGenerator extends ChunkGenerator {
-    public static final MapCodec<FlatBiomeExtendedChunkGenerator> CODEC = RecordCodecBuilder.mapCodec(
+public class CustomFlatChunkGenerator extends ChunkGenerator {
+    public static final MapCodec<CustomFlatChunkGenerator> CODEC = RecordCodecBuilder.mapCodec(
             instance -> instance.group(
                             BiomeSource.CODEC.fieldOf("biome_source").forGetter(ChunkGenerator::getBiomeSource),
-                            FlatBiomeExtendedGeneratorConfig.CODEC.fieldOf("config").forGetter((generator) -> generator.config)
+                            CustomFlatGeneratorConfig.CODEC.fieldOf("config").forGetter((generator) -> generator.config)
                     )
-                    .apply(instance, instance.stable(FlatBiomeExtendedChunkGenerator::new))
+                    .apply(instance, instance.stable(CustomFlatChunkGenerator::new))
     );
-    private final FlatBiomeExtendedGeneratorConfig config;
+    private final CustomFlatGeneratorConfig config;
     private final AquiferSampler.FluidLevelSampler fluidLevelSampler;
 
-    public FlatBiomeExtendedChunkGenerator(BiomeSource biomeSource, FlatBiomeExtendedGeneratorConfig config) {
+    public CustomFlatChunkGenerator(BiomeSource biomeSource, CustomFlatGeneratorConfig config) {
         super(biomeSource, Util.memoize(config::createGenerationSettings));
         this.config = config;
         this.fluidLevelSampler = (x, y, z) -> new AquiferSampler.FluidLevel(y, Blocks.AIR.getDefaultState());
@@ -53,7 +53,7 @@ public class FlatBiomeExtendedChunkGenerator extends ChunkGenerator {
         return CODEC;
     }
 
-    public FlatBiomeExtendedGeneratorConfig getConfig() {
+    public CustomFlatGeneratorConfig getConfig() {
         return this.config;
     }
 

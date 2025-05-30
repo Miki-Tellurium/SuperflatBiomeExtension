@@ -1,7 +1,7 @@
 package com.mikitellurium.superflatbiomeextension.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import com.mikitellurium.superflatbiomeextension.worldgen.FlatBiomeExtendedChunkGenerator;
+import com.mikitellurium.superflatbiomeextension.worldgen.CustomFlatChunkGenerator;
 import net.minecraft.structure.OceanMonumentGenerator;
 import net.minecraft.structure.StructurePiecesCollector;
 import net.minecraft.util.BlockRotation;
@@ -31,7 +31,7 @@ public class StructureFixMixin {
          */
         @Inject(method = "getStructurePosition", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/math/BlockPos;getY()I"), cancellable = true)
         private void inject$returnPositionIfFlat(Structure.Context context, CallbackInfoReturnable<Optional<Structure.StructurePosition>> cir, @Local BlockRotation rotation, @Local BlockPos pos) {
-            if (context.chunkGenerator() instanceof FlatBiomeExtendedChunkGenerator) {
+            if (context.chunkGenerator() instanceof CustomFlatChunkGenerator) {
                 cir.setReturnValue(Optional.of(new Structure.StructurePosition(pos, (collector) -> this.addPieces(collector, context, pos, rotation))));
             }
         }
@@ -46,7 +46,7 @@ public class StructureFixMixin {
         @Inject(method = "addPieces", at = @At(value = "TAIL"))
         private static void inject$shiftStructure(StructurePiecesCollector collector, Structure.Context context, CallbackInfo ci) {
             ChunkGenerator chunkGenerator = context.chunkGenerator();
-            if (chunkGenerator instanceof FlatBiomeExtendedChunkGenerator) {
+            if (chunkGenerator instanceof CustomFlatChunkGenerator) {
                 OceanMonumentGenerator.Base base = (OceanMonumentGenerator.Base) collector.toList().pieces().getFirst();
                 BlockBox boundingBox = base.getBoundingBox();
                 int maxAllowedShift = context.chunkGenerator().getMinimumY() - boundingBox.getMinY() + 2;

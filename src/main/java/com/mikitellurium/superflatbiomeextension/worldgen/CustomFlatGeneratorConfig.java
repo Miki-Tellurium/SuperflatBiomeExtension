@@ -1,7 +1,6 @@
 package com.mikitellurium.superflatbiomeextension.worldgen;
 
 import com.mikitellurium.superflatbiomeextension.mixin.DensityFunctionsAccessor;
-import com.mikitellurium.superflatbiomeextension.mixin.GenerationShapeConfigAccessor;
 import com.mikitellurium.superflatbiomeextension.registry.GenerationShapeConfigRegistry;
 import com.mikitellurium.superflatbiomeextension.worldgen.biome.FlatBiomeParameters;
 import com.mikitellurium.superflatbiomeextension.worldgen.biome.ModSurfaceRules;
@@ -27,17 +26,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
-public class FlatBiomeExtendedGeneratorConfig {
-    public static final Codec<FlatBiomeExtendedGeneratorConfig> CODEC = RecordCodecBuilder.create(
+public class CustomFlatGeneratorConfig {
+    public static final Codec<CustomFlatGeneratorConfig> CODEC = RecordCodecBuilder.create(
             (instance) -> instance.group(
                     GenerationShapeConfigRegistry.CODEC.optionalFieldOf("shape_config", GenerationShapeConfigRegistry.SURFACE).forGetter((config) -> config.shapeConfig),
                     Codec.INT.fieldOf("layer_count").forGetter((config) -> config.layerCount),
                     Codec.BOOL.fieldOf("generate_water").forGetter((config) -> config.generateWater),
                     Codec.BOOL.fieldOf("has_features").forGetter((config) -> config.hasFeatures),
-                    Codec.BOOL.fieldOf("has_structures").forGetter(FlatBiomeExtendedGeneratorConfig::hasStructures),
-                    Codec.BOOL.fieldOf("has_lava_lakes").forGetter(FlatBiomeExtendedGeneratorConfig::hasLavaLakes),
-                    Codec.BOOL.fieldOf("generate_ores").forGetter(FlatBiomeExtendedGeneratorConfig::generateOres)
-            ).apply(instance, FlatBiomeExtendedGeneratorConfig::new)
+                    Codec.BOOL.fieldOf("has_structures").forGetter(CustomFlatGeneratorConfig::hasStructures),
+                    Codec.BOOL.fieldOf("has_lava_lakes").forGetter(CustomFlatGeneratorConfig::hasLavaLakes),
+                    Codec.BOOL.fieldOf("generate_ores").forGetter(CustomFlatGeneratorConfig::generateOres)
+            ).apply(instance, CustomFlatGeneratorConfig::new)
     );
     private final GenerationShapeConfig shapeConfig;
     private final int layerCount;
@@ -47,7 +46,7 @@ public class FlatBiomeExtendedGeneratorConfig {
     private final Map<Integer, FeatureStepCheck> featureChecks;
     private final ChunkGeneratorSettings settings;
 
-    public FlatBiomeExtendedGeneratorConfig(GenerationShapeConfig shapeConfig, int layerCount, boolean generateWater, boolean hasFeatures, boolean hasStructures, boolean lavaLakes, boolean generateOres) {
+    public CustomFlatGeneratorConfig(GenerationShapeConfig shapeConfig, int layerCount, boolean generateWater, boolean hasFeatures, boolean hasStructures, boolean lavaLakes, boolean generateOres) {
         validateLayerCount(layerCount);
         this.shapeConfig = shapeConfig;
         this.layerCount = layerCount;
