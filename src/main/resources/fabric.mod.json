@@ -1,17 +1,17 @@
 {
 	"schemaVersion": 1,
-	"id": "superflatbiomeextension",
-	"version": "${version}",
+	"id": "${mod_id}",
+	"version": "${mod_version}",
 	"name": "Superflat Biome Extension",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "Adds a flat world type with regular biome distribution.",
 	"authors": [
-		"Me!"
+		"Miki Tellurium"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "",
+		"sources": ""
 	},
-	"license": "CC0-1.0",
+	"license": "MIT License",
 	"icon": "assets/superflatbiomeextension/icon.png",
 	"environment": "*",
 	"entrypoints": {
@@ -23,9 +23,9 @@
 		]
 	},
 	"mixins": [
-		"superflatbiomeextension.mixins.json"
+		"${mod_id}.mixins.json"
 	],
-	"accessWidener" : "superflatbiomeextension.accesswidener",
+	"accessWidener" : "${mod_id}.accesswidener",
 	"depends": {
 		"fabricloader": ">=0.16.14",
 		"minecraft": "~1.21.5",
