@@ -34,7 +34,7 @@ public class CustomFlatGeneratorConfig {
                     Codec.BOOL.fieldOf("generate_water").forGetter((config) -> config.generateWater),
                     Codec.BOOL.fieldOf("has_features").forGetter((config) -> config.hasFeatures),
                     Codec.BOOL.fieldOf("has_structures").forGetter(CustomFlatGeneratorConfig::hasStructures),
-                    Codec.BOOL.fieldOf("has_lava_lakes").forGetter(CustomFlatGeneratorConfig::hasLavaLakes),
+                    Codec.BOOL.fieldOf("has_lava_lakes").forGetter(CustomFlatGeneratorConfig::hasLakes),
                     Codec.BOOL.fieldOf("generate_ores").forGetter(CustomFlatGeneratorConfig::generateOres)
             ).apply(instance, CustomFlatGeneratorConfig::new)
     );
@@ -45,14 +45,14 @@ public class CustomFlatGeneratorConfig {
     private final Map<Integer, FeatureStepCheck> featureChecks;
     private final ChunkGeneratorSettings settings;
 
-    public CustomFlatGeneratorConfig(GenerationShapeConfig shapeConfig, int layerCount, boolean generateWater, boolean hasFeatures, boolean hasStructures, boolean lavaLakes, boolean generateOres) {
+    public CustomFlatGeneratorConfig(GenerationShapeConfig shapeConfig, int layerCount, boolean generateWater, boolean hasFeatures, boolean hasStructures, boolean hasLakes, boolean generateOres) {
         validateLayerCount(layerCount);
         this.shapeConfig = shapeConfig;
         this.layerCount = layerCount;
         this.generateWater = generateWater;
         this.hasFeatures = hasFeatures;
         this.featureChecks = Map.of(
-                GenerationStep.Feature.LAKES.ordinal(), new FeatureStepCheck(lavaLakes, GenerationStep.Feature.LAKES),
+                GenerationStep.Feature.LAKES.ordinal(), new FeatureStepCheck(hasLakes, GenerationStep.Feature.LAKES),
                 GenerationStep.Feature.UNDERGROUND_ORES.ordinal(), new FeatureStepCheck(generateOres, GenerationStep.Feature.UNDERGROUND_ORES),
                 GenerationStep.Feature.UNDERGROUND_STRUCTURES.ordinal(), new FeatureStepCheck(hasStructures, GenerationStep.Feature.UNDERGROUND_STRUCTURES),
                 GenerationStep.Feature.SURFACE_STRUCTURES.ordinal(), new FeatureStepCheck(hasStructures, GenerationStep.Feature.SURFACE_STRUCTURES),
@@ -114,7 +114,7 @@ public class CustomFlatGeneratorConfig {
         return this.hasFeatures;
     }
 
-    public boolean hasLavaLakes() {
+    public boolean hasLakes() {
         return featureChecks.get(GenerationStep.Feature.LAKES.ordinal()).isEnabled();
     }
 

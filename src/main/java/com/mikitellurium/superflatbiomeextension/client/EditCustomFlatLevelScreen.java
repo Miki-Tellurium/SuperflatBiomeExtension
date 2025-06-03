@@ -89,9 +89,9 @@ public class EditCustomFlatLevelScreen extends Screen {
                     (button, newValue) -> config.settings[2] = newValue
             ));
             this.addEntry(new SettingWidget<>(
-                    Text.translatable("createWorld.superflatbiomeextension.customize.flat.has_lava_lakes"),
+                    Text.translatable("createWorld.superflatbiomeextension.customize.flat.has_lakes"),
                     CyclingButtonWidget.onOffBuilder(config.settings[3]).omitKeyText(),
-                    Tooltip.of(Text.translatable("createWorld.superflatbiomeextension.customize.flat.tooltip.has_lava_lakes")),
+                    Tooltip.of(Text.translatable("createWorld.superflatbiomeextension.customize.flat.tooltip.has_lakes")),
                     (button, newValue) -> config.settings[3] = newValue
             ));
             this.addEntry(new SettingWidget<>(
@@ -167,7 +167,7 @@ public class EditCustomFlatLevelScreen extends Screen {
             this.settings[0] = config.generateWater();
             this.settings[1] = config.hasFeatures();
             this.settings[2] = config.hasStructures();
-            this.settings[3] = config.hasLavaLakes();
+            this.settings[3] = config.hasLakes();
             this.settings[4] = config.generateOres();
         }
 
