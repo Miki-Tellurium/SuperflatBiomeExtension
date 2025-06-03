@@ -30,17 +30,17 @@ public class SuperflatBiomeExtension implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		ModRegistries.register();
-		ServerEntityEvents.ENTITY_LOAD.register(((entity, world) -> {
-			if (entity instanceof ServerPlayerEntity player) {
-				player.addStatusEffect(new StatusEffectInstance(StatusEffects.NIGHT_VISION, Integer.MAX_VALUE));
-				player.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, Integer.MAX_VALUE, 50));
-				ItemStack itemStack = new ItemStack(Items.DIAMOND_BOOTS);
-				RegistryEntryLookup<Enchantment> entryLookup = player.getWorld().getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT);
-				RegistryEntry<Enchantment> enchantment = entryLookup.getOrThrow(Enchantments.DEPTH_STRIDER);
-				EnchantmentHelper.apply(itemStack, (builder) -> builder.add(enchantment, 3));
-				player.equipStack(EquipmentSlot.FEET, itemStack);
-			}
-		}));
+//		ServerEntityEvents.ENTITY_LOAD.register(((entity, world) -> {
+//			if (entity instanceof ServerPlayerEntity player) {
+//				player.addStatusEffect(new StatusEffectInstance(StatusEffects.NIGHT_VISION, Integer.MAX_VALUE));
+//				player.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, Integer.MAX_VALUE, 50));
+//				ItemStack itemStack = new ItemStack(Items.DIAMOND_BOOTS);
+//				RegistryEntryLookup<Enchantment> entryLookup = player.getWorld().getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT);
+//				RegistryEntry<Enchantment> enchantment = entryLookup.getOrThrow(Enchantments.DEPTH_STRIDER);
+//				EnchantmentHelper.apply(itemStack, (builder) -> builder.add(enchantment, 3));
+//				player.equipStack(EquipmentSlot.FEET, itemStack);
+//			}
+//		}));
 	}
 
 	public static String modId() {

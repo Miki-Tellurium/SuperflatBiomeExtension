@@ -1,3 +1,14 @@
 {
-  "generator.superflatbiomeextension.flat_biome_extended": "Superflat Biome Extensions"
+  "generator.superflatbiomeextension.flat_biome_extended": "Superflat Biome Extensions",
+  "createWorld.superflatbiomeextension.customize.flat.title": "Superflat Biome Extension Customization",
+  "createWorld.superflatbiomeextension.customize.flat.generate_water": "Generate Water",
+  "createWorld.superflatbiomeextension.customize.flat.has_features": "Generate Features",
+  "createWorld.superflatbiomeextension.customize.flat.has_structures": "Generate Structures",
+  "createWorld.superflatbiomeextension.customize.flat.has_lava_lakes": "Generate Lava Lakes",
+  "createWorld.superflatbiomeextension.customize.flat.generate_ores": "Generate Ores",
+  "createWorld.superflatbiomeextension.customize.flat.tooltip.generate_water": "Wether biomes that have water (oceans, rivers, etc.) will generate a layer of water",
+  "createWorld.superflatbiomeextension.customize.flat.tooltip.has_features": "E.g. trees, flowers, amethyst geodes",
+  "createWorld.superflatbiomeextension.customize.flat.tooltip.has_structures": "E.g. villages, mineshafts, strongholds",
+  "createWorld.superflatbiomeextension.customize.flat.tooltip.has_lava_lakes": "Wether lava lakes will generate",
+  "createWorld.superflatbiomeextension.customize.flat.tooltip.generate_ores": "Wether ores (e.g. iron, diamond) will generate in the world"
 }

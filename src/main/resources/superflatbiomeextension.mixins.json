@@ -17,6 +17,9 @@
     "StructureFixMixin$WoodlandMansion",
     "SurfaceBuilderMixin"
   ],
+  "client": [
+    "WorldCreatorMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   }

@@ -40,7 +40,6 @@ public class CustomFlatGeneratorConfig {
     );
     private final GenerationShapeConfig shapeConfig;
     private final int layerCount;
-    private final int surfaceY;
     private final boolean generateWater;
     private final boolean hasFeatures;
     private final Map<Integer, FeatureStepCheck> featureChecks;
@@ -50,7 +49,6 @@ public class CustomFlatGeneratorConfig {
         validateLayerCount(layerCount);
         this.shapeConfig = shapeConfig;
         this.layerCount = layerCount;
-        this.surfaceY = shapeConfig.minimumY() + layerCount;
         this.generateWater = generateWater;
         this.hasFeatures = hasFeatures;
         this.featureChecks = Map.of(
@@ -60,7 +58,7 @@ public class CustomFlatGeneratorConfig {
                 GenerationStep.Feature.SURFACE_STRUCTURES.ordinal(), new FeatureStepCheck(hasStructures, GenerationStep.Feature.SURFACE_STRUCTURES),
                 GenerationStep.Feature.STRONGHOLDS.ordinal(), new FeatureStepCheck(hasStructures, GenerationStep.Feature.STRONGHOLDS)
         );
-        this.settings = this.createDefaultSettings();
+        this.settings = this.createSettings(shapeConfig.minimumY() + layerCount);
     }
 
     public ChunkGeneratorSettings getChunkGeneratorSettings() {
@@ -72,7 +70,8 @@ public class CustomFlatGeneratorConfig {
         GenerationSettings generationSettings = biomeEntry.value().getGenerationSettings();
         List<RegistryEntryList<PlacedFeature>> list = generationSettings.getFeatures();
         for (int i = 0; i < list.size(); i++) {
-            if ((this.hasFeatures() && !featureChecks.containsKey(i)) || this.featureChecks.get(i).test(i))
+            if ((this.hasFeatures() && !featureChecks.containsKey(i))
+                    || (this.featureChecks.containsKey(i) && this.featureChecks.get(i).test(i)))
                 for (RegistryEntry<PlacedFeature> feature : list.get(i)) {
                     builder.addFeature(i, feature);
                 }
@@ -80,7 +79,7 @@ public class CustomFlatGeneratorConfig {
         return builder.build();
     }
 
-    private ChunkGeneratorSettings createDefaultSettings() {
+    private ChunkGeneratorSettings createSettings(int surfaceY) {
         RegistryWrapper.WrapperLookup lookup = BuiltinRegistries.createWrapperLookup();
         RegistryEntryLookup<DensityFunction> densityFunctionRegistry = lookup.getOrThrow(RegistryKeys.DENSITY_FUNCTION);
         RegistryEntryLookup<DoublePerlinNoiseSampler.NoiseParameters> noiseParametersRegistry = lookup.getOrThrow(RegistryKeys.NOISE_PARAMETERS);
@@ -89,9 +88,9 @@ public class CustomFlatGeneratorConfig {
                 Blocks.STONE.getDefaultState(),
                 Blocks.WATER.getDefaultState(),
                 DensityFunctionsAccessor.invokeCreateSurfaceNoiseRouter(densityFunctionRegistry, noiseParametersRegistry, false, false),
-                ModSurfaceRules.createDefaultModSurfaceRule(this.surfaceY, this.generateWater()),
+                ModSurfaceRules.createDefaultModSurfaceRule(surfaceY, this.generateWater()),
                 new FlatBiomeParameters().getSpawnSuitabilityNoises(),
-                this.surfaceY - 1,
+                surfaceY - 1,
                 false,
                 false,
                 true,
@@ -99,8 +98,12 @@ public class CustomFlatGeneratorConfig {
         );
     }
 
+    public GenerationShapeConfig getGenerationShapeConfig() {
+        return this.shapeConfig;
+    }
+
     public int getLayerCount() {
-        return layerCount;
+        return this.layerCount;
     }
 
     public boolean generateWater() {
@@ -129,6 +132,19 @@ public class CustomFlatGeneratorConfig {
         if (layerCount < 1 || layerCount > 384) {
             throw new IllegalArgumentException("Layer count must be between 1 and 384. Got: " + layerCount);
         }
+    }
+
+    @SuppressWarnings("DataFlowIssue")
+    public static CustomFlatGeneratorConfig createDefault() {
+        return new CustomFlatGeneratorConfig(
+                GenerationShapeConfigRegistry.SURFACE,
+                64,
+                true,
+                true,
+                true,
+                false,
+                false
+        );
     }
 
     private record FeatureStepCheck(boolean isEnabled, GenerationStep.Feature featureStep) implements Predicate<Integer> {
