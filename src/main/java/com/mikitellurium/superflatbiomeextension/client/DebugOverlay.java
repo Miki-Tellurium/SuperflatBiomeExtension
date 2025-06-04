@@ -34,7 +34,7 @@ public class DebugOverlay implements LayeredDrawer.Layer {
                     String.format(Locale.ROOT, "X: %.3f", player.getX()),
                     String.format(Locale.ROOT, "Y: %.3f", player.getY()),
                     String.format(Locale.ROOT, "Z: %.3f", player.getZ()),
-                    String.format(Locale.ROOT, "Facing: %S", direction.asString())
+                    String.format(Locale.ROOT, "Facing: %s", direction.asString())
             );
         }
     }
