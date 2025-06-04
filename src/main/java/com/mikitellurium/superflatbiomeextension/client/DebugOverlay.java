@@ -9,6 +9,7 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.biome.Biome;
 
 import java.util.Arrays;
@@ -27,11 +28,13 @@ public class DebugOverlay implements LayeredDrawer.Layer {
         ClientPlayerEntity player = minecraft.player;
         if (world != null && player != null) {
             RegistryEntry<Biome> biome = world.getBiome(player.getBlockPos());
+            Direction direction = player.getHorizontalFacing();
             write(context,
                     biome.getIdAsString(),
                     String.format(Locale.ROOT, "X: %.3f", player.getX()),
                     String.format(Locale.ROOT, "Y: %.3f", player.getY()),
-                    String.format(Locale.ROOT, "Z: %.3f", player.getZ())
+                    String.format(Locale.ROOT, "Z: %.3f", player.getZ()),
+                    String.format(Locale.ROOT, "Facing: %S", direction.asString())
             );
         }
     }
