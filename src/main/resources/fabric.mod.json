@@ -12,7 +12,7 @@
 		"sources": ""
 	},
 	"license": "MIT License",
-	"icon": "assets/superflatbiomeextension/icon.png",
+	"icon": "assets/superflatbiomextension_logo.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
