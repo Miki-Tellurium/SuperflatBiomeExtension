@@ -30,7 +30,7 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	modImplementation "maven.modrinth:modmenu:14.0.0-rc.2"
+	modImplementation "maven.modrinth:modmenu:${modmenu_version}"
 	modImplementation "maven.modrinth:yeetus-experimentus:87.0.0-fabric"
 }
 
