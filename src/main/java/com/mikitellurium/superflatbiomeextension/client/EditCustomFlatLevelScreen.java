@@ -150,7 +150,7 @@ public class EditCustomFlatLevelScreen extends Screen {
             button.setY(y);
             button.render(context, mouseX, mouseY, tickProgress);
             this.drawOutline(context, x, y, entryWidth, entryHeight);
-            this.tooltip.render(this.isHovered(mouseX, mouseY, x, y, entryWidth, entryHeight), this.isFocused(), this.getNavigationFocus());
+            this.tooltip.render(context, mouseX, mouseY, this.isHovered(mouseX, mouseY, x, y, entryWidth, entryHeight), this.isFocused(), this.getNavigationFocus());
         }
 
         public boolean isHovered(int mouseX, int mouseY, int x, int y, int width, int height) {
