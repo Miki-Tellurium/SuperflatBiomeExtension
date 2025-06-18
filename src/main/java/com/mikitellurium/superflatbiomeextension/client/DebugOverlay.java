@@ -15,7 +15,6 @@ import java.util.Arrays;
 import java.util.Locale;
 
 public class DebugOverlay implements HudElement {
-    private final TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
     private int y = 0;
 
     @Override
@@ -39,6 +38,7 @@ public class DebugOverlay implements HudElement {
     }
 
     private void write(DrawContext context, String... texts) {
+        TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
         Arrays.stream(texts).forEach((text) -> {
             context.drawText(textRenderer, text, 5, y, -1, false);
             y += textRenderer.fontHeight + 1;
