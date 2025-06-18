@@ -136,20 +136,12 @@ public class EditCustomFlatLevelScreen extends Screen {
             }
         }
 
-        private void drawOutline(DrawContext context, int x, int y, int width, int height) {
-            context.drawHorizontalLine(x, x + width, y, -1);
-            context.drawHorizontalLine(x, x + width, y + height - 1, -1);
-            context.drawVerticalLine(x, y, y + height - 1, -1);
-            context.drawVerticalLine(x + width, y, y + height - 1, -1);
-        }
-
         @Override
         public void render(DrawContext context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickProgress) {
             this.drawText(context, x, y, entryHeight);
             button.setX(x + entryWidth - button.getWidth());
             button.setY(y);
             button.render(context, mouseX, mouseY, tickProgress);
-            this.drawOutline(context, x, y, entryWidth, entryHeight);
             this.tooltip.render(context, mouseX, mouseY, this.isHovered(mouseX, mouseY, x, y, entryWidth, entryHeight), this.isFocused(), this.getNavigationFocus());
         }
 
