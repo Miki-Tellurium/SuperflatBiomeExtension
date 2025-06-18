@@ -1,10 +1,9 @@
 package com.mikitellurium.superflatbiomeextension.client;
 
-import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.LayeredDrawer;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.world.ClientWorld;
@@ -15,7 +14,7 @@ import net.minecraft.world.biome.Biome;
 import java.util.Arrays;
 import java.util.Locale;
 
-public class DebugOverlay implements LayeredDrawer.Layer {
+public class DebugOverlay implements HudElement {
     private final TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
     private int y = 0;
 
