@@ -104,7 +104,7 @@ public class CustomFlatChunkGenerator extends ChunkGenerator {
 
     @Override
     public int getSpawnHeight(LevelHeightAccessor world) {
-        return world.getMinY() + Math.min(world.getHeight(), 64);
+        return world.getMinY() + Math.min(world.getHeight(), this.config.getTotalHeight());
     }
 
     @Override
@@ -113,26 +113,45 @@ public class CustomFlatChunkGenerator extends ChunkGenerator {
 
     @Override
     public CompletableFuture<ChunkAccess> fillFromNoise(Blender blender, RandomState randomState, StructureManager structureManager, ChunkAccess chunk) {
-        final int height = config.getLayerCount();
         Heightmap heightmap = chunk.getOrCreateHeightmapUnprimed(Heightmap.Types.OCEAN_FLOOR_WG);
         Heightmap heightmap2 = chunk.getOrCreateHeightmapUnprimed(Heightmap.Types.WORLD_SURFACE_WG);
-        CustomFlatBerdifier customFlatBerdifier = CustomFlatBerdifier.create(chunk.getPos(), structureManager, randomState,
-                (blockPos) -> blockPos.getY() == this.getMinY() ? Blocks.BEDROCK.defaultBlockState() : this.config.getChunkGeneratorSettings().defaultBlock(),
-                (random) -> -0.1 + random.nextDouble() * 0.01);
+        List<CustomFlatGeneratorConfig.FlatLayer> layers = config.getResolvedLayers();
 
         return CompletableFuture.supplyAsync(() -> {
             chunk.getOrCreateNoiseChunk(c -> this.createNoiseChunk(c, structureManager, blender, randomState));
             BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
-            for (int i = 0; i < Math.min(chunk.getHeight(), height); i++) {
-                int y = this.getMinY() + i;
-                for (int x = 0; x < 16; x++) {
-                    for (int z = 0; z < 16; z++) {
-                        customFlatBerdifier.updatePosition(mutable.set(x, y, z));
-                        BlockState blockState = customFlatBerdifier.sampleBlockState();
-                        if (!blockState.isAir()) {
-                            chunk.setBlockState(mutable, blockState);
-                            heightmap.update(x, y, z, blockState);
-                            heightmap2.update(x, y, z, blockState);
+            if (config.hasCustomLayers()) {
+                int yIndex = 0;
+                for (CustomFlatGeneratorConfig.FlatLayer layer : layers) {
+                    for (int h = 0; h < layer.height() && yIndex < chunk.getHeight(); h++) {
+                        int y = this.getMinY() + yIndex++;
+                        net.minecraft.world.level.block.state.BlockState state = layer.blockState();
+                        for (int x = 0; x < 16; x++) {
+                            for (int z = 0; z < 16; z++) {
+                                mutable.set(x, y, z);
+                                chunk.setBlockState(mutable, state);
+                                heightmap.update(x, y, z, state);
+                                heightmap2.update(x, y, z, state);
+                            }
+                        }
+                    }
+                }
+            } else {
+                final int height = config.getLayerCount();
+                CustomFlatBerdifier customFlatBerdifier = CustomFlatBerdifier.create(chunk.getPos(), structureManager, randomState,
+                        (blockPos) -> blockPos.getY() == this.getMinY() ? Blocks.BEDROCK.defaultBlockState() : this.config.getChunkGeneratorSettings().defaultBlock(),
+                        (random) -> -0.1 + random.nextDouble() * 0.01);
+                for (int i = 0; i < Math.min(chunk.getHeight(), height); i++) {
+                    int y = this.getMinY() + i;
+                    for (int x = 0; x < 16; x++) {
+                        for (int z = 0; z < 16; z++) {
+                            customFlatBerdifier.updatePosition(mutable.set(x, y, z));
+                            net.minecraft.world.level.block.state.BlockState blockState = customFlatBerdifier.sampleBlockState();
+                            if (!blockState.isAir()) {
+                                chunk.setBlockState(mutable, blockState);
+                                heightmap.update(x, y, z, blockState);
+                                heightmap2.update(x, y, z, blockState);
+                            }
                         }
                     }
                 }
@@ -143,6 +162,9 @@ public class CustomFlatChunkGenerator extends ChunkGenerator {
 
     @Override
     public int getBaseHeight(int x, int z, Heightmap.Types heightmap, LevelHeightAccessor world, RandomState randomState) {
+        if (config.hasCustomLayers()) {
+            return world.getMinY() + config.getTotalHeight();
+        }
         for (int i = Math.min(this.config.getLayerCount(), world.getHeight()); i >= 0; i--) {
             BlockState blockState = this.config.getChunkGeneratorSettings().defaultBlock();
             if (blockState != null && heightmap.isOpaque().test(blockState)) {
@@ -154,8 +176,15 @@ public class CustomFlatChunkGenerator extends ChunkGenerator {
 
     @Override
     public NoiseColumn getBaseColumn(int x, int z, LevelHeightAccessor world, RandomState randomState) {
-        BlockState[] blockStates = new BlockState[this.config.getLayerCount()];
-        Arrays.fill(blockStates, this.config.getChunkGeneratorSettings().defaultBlock());
+        List<CustomFlatGeneratorConfig.FlatLayer> resolvedLayers = this.config.getResolvedLayers();
+        int totalHeight = this.config.getTotalHeight();
+        BlockState[] blockStates = new BlockState[totalHeight];
+        int yIndex = 0;
+        for (CustomFlatGeneratorConfig.FlatLayer layer : resolvedLayers) {
+            for (int h = 0; h < layer.height() && yIndex < totalHeight; h++) {
+                blockStates[yIndex++] = layer.blockState();
+            }
+        }
         return new NoiseColumn(world.getMinY(), blockStates);
     }
 

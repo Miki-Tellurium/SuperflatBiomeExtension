@@ -159,6 +159,7 @@ public class EditCustomFlatLevelScreen extends Screen {
         public CustomFlatGeneratorConfig getConfig() {
             return new CustomFlatGeneratorConfig(config.getGenerationShapeConfig(), config.getLayerCount(),
                     this.settings[0], this.settings[1], this.settings[2], this.settings[3], this.settings[4],
+                    config.getLayers(),
                     config.getBiomes(), config.getDensityFunctions(), config.getNoises()
             );
         }

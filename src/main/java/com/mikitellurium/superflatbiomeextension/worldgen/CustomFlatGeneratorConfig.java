@@ -13,7 +13,9 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeGenerationSettings;
 import net.minecraft.world.level.biome.Climate;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunctions;
 import net.minecraft.world.level.levelgen.GenerationStep;
@@ -41,6 +43,7 @@ public class CustomFlatGeneratorConfig {
                     Codec.BOOL.fieldOf("has_structures").forGetter(CustomFlatGeneratorConfig::hasStructures),
                     Codec.BOOL.fieldOf("has_lava_lakes").forGetter(CustomFlatGeneratorConfig::hasLakes),
                     Codec.BOOL.fieldOf("generate_ores").forGetter(CustomFlatGeneratorConfig::generateOres),
+                    FlatLayer.CODEC.listOf().optionalFieldOf("layers", List.of()).forGetter((config) -> config.layers),
                     RegistryOps.retrieveGetter(Registries.BIOME),
                     RegistryOps.retrieveGetter(Registries.DENSITY_FUNCTION),
                     RegistryOps.retrieveGetter(Registries.NOISE)
@@ -51,12 +54,13 @@ public class CustomFlatGeneratorConfig {
     private final boolean generateWater;
     private final boolean hasFeatures;
     private final Map<Integer, FeatureStepCheck> featureChecks;
+    private final List<FlatLayer> layers;
     private final HolderGetter<Biome> biomes;
     private final HolderGetter<DensityFunction> densityFunctions;
     private final HolderGetter<NormalNoise.NoiseParameters> noises;
     private final Supplier<NoiseGeneratorSettings> settings;
 
-    public CustomFlatGeneratorConfig(NoiseSettings shapeConfig, int layerCount, boolean generateWater, boolean hasFeatures, boolean hasStructures, boolean hasLakes, boolean generateOres,
+    public CustomFlatGeneratorConfig(NoiseSettings shapeConfig, int layerCount, boolean generateWater, boolean hasFeatures, boolean hasStructures, boolean hasLakes, boolean generateOres, List<FlatLayer> layers,
                                      HolderGetter<Biome> biomes, HolderGetter<DensityFunction> densityFunctions, HolderGetter<NormalNoise.NoiseParameters> noises) {
         validateLayerCount(layerCount);
         this.shapeConfig = shapeConfig;
@@ -70,10 +74,24 @@ public class CustomFlatGeneratorConfig {
                 GenerationStep.Decoration.SURFACE_STRUCTURES.ordinal(), new FeatureStepCheck(hasStructures, GenerationStep.Decoration.SURFACE_STRUCTURES),
                 GenerationStep.Decoration.STRONGHOLDS.ordinal(), new FeatureStepCheck(hasStructures, GenerationStep.Decoration.STRONGHOLDS)
         );
+        this.layers = layers;
         this.biomes = biomes;
         this.densityFunctions = densityFunctions;
         this.noises = noises;
         this.settings = Suppliers.memoize(this::createSettings);
+    }
+
+    public record FlatLayer(net.minecraft.core.Holder<net.minecraft.world.level.block.Block> block, int height) {
+        public static final Codec<FlatLayer> CODEC = RecordCodecBuilder.create(
+                (instance) -> instance.group(
+                        net.minecraft.core.registries.BuiltInRegistries.BLOCK.holderByNameCodec().fieldOf("block").forGetter(FlatLayer::block),
+                        Codec.intRange(0, net.minecraft.world.level.dimension.DimensionType.Y_SIZE).fieldOf("height").forGetter(FlatLayer::height)
+                ).apply(instance, FlatLayer::new)
+        );
+
+        public net.minecraft.world.level.block.state.BlockState blockState() {
+            return this.block.value().defaultBlockState();
+        }
     }
 
     public NoiseGeneratorSettings getChunkGeneratorSettings() {
@@ -95,7 +113,7 @@ public class CustomFlatGeneratorConfig {
     }
 
     private NoiseGeneratorSettings createSettings() {
-        int surfaceY = shapeConfig.minY() + layerCount;
+        int surfaceY = shapeConfig.minY() + getTotalHeight();
         return new NoiseGeneratorSettings(
                 this.shapeConfig,
                 Blocks.STONE.defaultBlockState(),
@@ -169,6 +187,31 @@ public class CustomFlatGeneratorConfig {
         return this.layerCount;
     }
 
+    public List<FlatLayer> getLayers() {
+        return this.layers;
+    }
+
+    public boolean hasCustomLayers() {
+        return !this.layers.isEmpty();
+    }
+
+    public List<FlatLayer> getResolvedLayers() {
+        if (this.hasCustomLayers()) {
+            return this.layers;
+        }
+        return List.of(
+                new FlatLayer(BuiltInRegistries.BLOCK.wrapAsHolder(Blocks.BEDROCK), 1),
+                new FlatLayer(BuiltInRegistries.BLOCK.wrapAsHolder(Blocks.STONE), this.layerCount - 1)
+        );
+    }
+
+    public int getTotalHeight() {
+        if (this.hasCustomLayers()) {
+            return this.layers.stream().mapToInt(FlatLayer::height).sum();
+        }
+        return this.layerCount;
+    }
+
     public HolderGetter<Biome> getBiomes() {
         return this.biomes;
     }
@@ -219,6 +262,7 @@ public class CustomFlatGeneratorConfig {
                 true,
                 false,
                 false,
+                List.of(),
                 holderLookup.lookupOrThrow(Registries.BIOME),
                 holderLookup.lookupOrThrow(Registries.DENSITY_FUNCTION),
                 holderLookup.lookupOrThrow(Registries.NOISE)
@@ -232,3 +276,4 @@ public class CustomFlatGeneratorConfig {
         }
     }
 }
+
