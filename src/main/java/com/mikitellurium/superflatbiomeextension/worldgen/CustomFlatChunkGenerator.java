@@ -1,33 +1,36 @@
 package com.mikitellurium.superflatbiomeextension.worldgen;
 
-import com.mikitellurium.superflatbiomeextension.mixinutil.FlatSurfaceBuilder;
 import com.mikitellurium.superflatbiomeextension.worldgen.noise.CustomFlatBerdifier;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.SharedConstants;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.structure.StructureSet;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.util.Util;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.ChunkRegion;
-import net.minecraft.world.HeightLimitView;
-import net.minecraft.world.Heightmap;
-import net.minecraft.world.biome.source.BiomeAccess;
-import net.minecraft.world.biome.source.BiomeSource;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.gen.HeightContext;
-import net.minecraft.world.gen.StructureAccessor;
-import net.minecraft.world.gen.StructureWeightSampler;
-import net.minecraft.world.gen.chunk.*;
-import net.minecraft.world.gen.chunk.placement.StructurePlacementCalculator;
-import net.minecraft.world.gen.noise.NoiseConfig;
-import net.minecraft.world.gen.surfacebuilder.SurfaceBuilder;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.LevelHeightAccessor;
+import net.minecraft.world.level.NoiseColumn;
+import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeSource;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.chunk.ChunkGeneratorStructureState;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.NoiseChunk;
+import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
+import net.minecraft.world.level.levelgen.RandomState;
+import net.minecraft.world.level.levelgen.WorldGenerationContext;
+import net.minecraft.world.level.levelgen.blending.Blender;
+import net.minecraft.world.level.levelgen.structure.StructureSet;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
@@ -40,16 +43,16 @@ public class CustomFlatChunkGenerator extends ChunkGenerator {
                     .apply(instance, instance.stable(CustomFlatChunkGenerator::new))
     );
     private final CustomFlatGeneratorConfig config;
-    private final AquiferSampler.FluidLevelSampler fluidLevelSampler;
+    private final net.minecraft.world.level.levelgen.Aquifer.FluidPicker fluidLevelPicker;
 
     public CustomFlatChunkGenerator(BiomeSource biomeSource, CustomFlatGeneratorConfig config) {
         super(biomeSource, Util.memoize(config::createGenerationSettings));
         this.config = config;
-        this.fluidLevelSampler = (x, y, z) -> new AquiferSampler.FluidLevel(y, Blocks.AIR.getDefaultState());
+        this.fluidLevelPicker = (x, y, z) -> new net.minecraft.world.level.levelgen.Aquifer.FluidStatus(y, Blocks.AIR.defaultBlockState());
     }
 
     @Override
-    protected MapCodec<? extends ChunkGenerator> getCodec() {
+    protected MapCodec<? extends ChunkGenerator> codec() {
         return CODEC;
     }
 
@@ -58,59 +61,78 @@ public class CustomFlatChunkGenerator extends ChunkGenerator {
     }
 
     @Override
-    public StructurePlacementCalculator createStructurePlacementCalculator(RegistryWrapper<StructureSet> structureSetRegistry, NoiseConfig noiseConfig, long seed) {
+    public ChunkGeneratorStructureState createState(HolderLookup<StructureSet> structureSetRegistry, RandomState randomState, long seed) {
         if (this.config.hasStructures()) {
-            return super.createStructurePlacementCalculator(structureSetRegistry, noiseConfig, seed);
+            return super.createState(structureSetRegistry, randomState, seed);
         }
-        return StructurePlacementCalculator.create(noiseConfig, seed, this.biomeSource, Stream.of());
+        return ChunkGeneratorStructureState.createForFlat(randomState, seed, this.biomeSource, Stream.of());
     }
 
-    private ChunkNoiseSampler createChunkNoiseSampler(Chunk chunk, StructureAccessor world, Blender blender, NoiseConfig noiseConfig) {
-        return ChunkNoiseSampler.create(chunk, noiseConfig, StructureWeightSampler.createStructureWeightSampler(world, chunk.getPos()), this.config.getChunkGeneratorSettings(), this.fluidLevelSampler, blender);
+    private NoiseChunk createNoiseChunk(ChunkAccess chunk, StructureManager structureManager, Blender blender, RandomState randomState) {
+        return NoiseChunk.forChunk(
+                chunk,
+                randomState,
+                CustomFlatBerdifier.createWeightSampler(structureManager, chunk.getPos()),
+                this.config.getChunkGeneratorSettings(),
+                this.fluidLevelPicker,
+                blender
+        );
     }
 
     @Override
-    public void buildSurface(ChunkRegion region, StructureAccessor structureAccessor, NoiseConfig noiseConfig, Chunk chunk) {
-        if (!SharedConstants.isOutsideGenerationArea(chunk.getPos())) {
-            HeightContext heightContext = new HeightContext(this, region);
-            ChunkNoiseSampler chunkNoiseSampler = chunk.getOrCreateChunkNoiseSampler((c) -> this.createChunkNoiseSampler(c, structureAccessor, Blender.getBlender(region), noiseConfig));
-            ChunkGeneratorSettings chunkGeneratorSettings = this.config.getChunkGeneratorSettings();
-            SurfaceBuilder surfaceBuilder = noiseConfig.getSurfaceBuilder();
-            ((FlatSurfaceBuilder)surfaceBuilder).mixin$setFlat();
-            noiseConfig.getSurfaceBuilder().buildSurface(noiseConfig, region.getBiomeAccess(), region.getRegistryManager().getOrThrow(RegistryKeys.BIOME), chunkGeneratorSettings.usesLegacyRandom(), heightContext, chunk, chunkNoiseSampler, chunkGeneratorSettings.surfaceRule());
+    public void buildSurface(WorldGenRegion region, StructureManager structureManager, RandomState randomState, ChunkAccess protoChunk) {
+        if (!SharedConstants.DEBUG_DISABLE_SURFACE) {
+            WorldGenerationContext context = new WorldGenerationContext(this, region);
+            Set<Holder<Biome>> possibleBiomes = collectPossibleBiomes(region, 1);
+            NoiseChunk noiseChunk = protoChunk.getOrCreateNoiseChunk(chunk -> this.createNoiseChunk(chunk, structureManager, Blender.of(region), randomState));
+            NoiseGeneratorSettings chunkGeneratorSettings = this.config.getChunkGeneratorSettings();
+            ((com.mikitellurium.superflatbiomeextension.mixinutil.FlatSurfaceBuilder)randomState.surfaceSystem()).mixin$setFlat();
+            randomState.surfaceSystem().buildSurface(randomState, region.getBiomeManager(), chunkGeneratorSettings.useLegacyRandomSource(), context, protoChunk, noiseChunk, chunkGeneratorSettings.surfaceRule(), possibleBiomes);
         }
     }
 
-    @Override
-    public int getSpawnHeight(HeightLimitView world) {
-        return world.getBottomY() + Math.min(world.getHeight(), 64);
+    private static Set<Holder<Biome>> collectPossibleBiomes(WorldGenRegion region, int chunkRadius) {
+        Set<Holder<Biome>> chunkBiomes = new it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet<>();
+        ChunkPos center = region.getCenter();
+        for (int z = center.z() - chunkRadius; z <= center.z() + chunkRadius; z++) {
+            for (int x = center.x() - chunkRadius; x <= center.x() + chunkRadius; x++) {
+                region.getChunk(x, z).collectBiomesInPalette(chunkBiomes);
+            }
+        }
+        return chunkBiomes;
     }
 
     @Override
-    public void populateEntities(ChunkRegion region) {
+    public int getSpawnHeight(LevelHeightAccessor world) {
+        return world.getMinY() + Math.min(world.getHeight(), 64);
     }
 
     @Override
-    public CompletableFuture<Chunk> populateNoise(Blender blender, NoiseConfig noiseConfig, StructureAccessor structureAccessor, Chunk chunk) {
+    public void spawnOriginalMobs(WorldGenRegion region) {
+    }
+
+    @Override
+    public CompletableFuture<ChunkAccess> fillFromNoise(Blender blender, RandomState randomState, StructureManager structureManager, ChunkAccess chunk) {
         final int height = config.getLayerCount();
-        Heightmap heightmap = chunk.getHeightmap(Heightmap.Type.OCEAN_FLOOR_WG);
-        Heightmap heightmap2 = chunk.getHeightmap(Heightmap.Type.WORLD_SURFACE_WG);
-        CustomFlatBerdifier customFlatBerdifier = CustomFlatBerdifier.create(chunk.getPos(), blender, structureAccessor, noiseConfig,
-                (blockPos) -> blockPos.getY() == this.getMinimumY() ? Blocks.BEDROCK.getDefaultState() : this.config.getChunkGeneratorSettings().defaultBlock(),
+        Heightmap heightmap = chunk.getOrCreateHeightmapUnprimed(Heightmap.Types.OCEAN_FLOOR_WG);
+        Heightmap heightmap2 = chunk.getOrCreateHeightmapUnprimed(Heightmap.Types.WORLD_SURFACE_WG);
+        CustomFlatBerdifier customFlatBerdifier = CustomFlatBerdifier.create(chunk.getPos(), structureManager, randomState,
+                (blockPos) -> blockPos.getY() == this.getMinY() ? Blocks.BEDROCK.defaultBlockState() : this.config.getChunkGeneratorSettings().defaultBlock(),
                 (random) -> -0.1 + random.nextDouble() * 0.01);
 
         return CompletableFuture.supplyAsync(() -> {
-            BlockPos.Mutable mutable = new BlockPos.Mutable();
+            chunk.getOrCreateNoiseChunk(c -> this.createNoiseChunk(c, structureManager, blender, randomState));
+            BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
             for (int i = 0; i < Math.min(chunk.getHeight(), height); i++) {
-                int y = this.getMinimumY() + i;
+                int y = this.getMinY() + i;
                 for (int x = 0; x < 16; x++) {
                     for (int z = 0; z < 16; z++) {
                         customFlatBerdifier.updatePosition(mutable.set(x, y, z));
                         BlockState blockState = customFlatBerdifier.sampleBlockState();
                         if (!blockState.isAir()) {
                             chunk.setBlockState(mutable, blockState);
-                            heightmap.trackUpdate(x, y, z, blockState);
-                            heightmap2.trackUpdate(x, y, z, blockState);
+                            heightmap.update(x, y, z, blockState);
+                            heightmap2.update(x, y, z, blockState);
                         }
                     }
                 }
@@ -120,39 +142,39 @@ public class CustomFlatChunkGenerator extends ChunkGenerator {
     }
 
     @Override
-    public int getHeight(int x, int z, Heightmap.Type heightmap, HeightLimitView world, NoiseConfig noiseConfig) {
-        for (int i = Math.min(this.config.getLayerCount(), world.getTopYInclusive()); i >= 0; i--) {
+    public int getBaseHeight(int x, int z, Heightmap.Types heightmap, LevelHeightAccessor world, RandomState randomState) {
+        for (int i = Math.min(this.config.getLayerCount(), world.getHeight()); i >= 0; i--) {
             BlockState blockState = this.config.getChunkGeneratorSettings().defaultBlock();
-            if (blockState != null && heightmap.getBlockPredicate().test(blockState)) {
-                return world.getBottomY() + i;
+            if (blockState != null && heightmap.isOpaque().test(blockState)) {
+                return world.getMinY() + i;
             }
         }
-        return world.getBottomY();
+        return world.getMinY();
     }
 
     @Override
-    public VerticalBlockSample getColumnSample(int x, int z, HeightLimitView world, NoiseConfig noiseConfig) {
+    public NoiseColumn getBaseColumn(int x, int z, LevelHeightAccessor world, RandomState randomState) {
         BlockState[] blockStates = new BlockState[this.config.getLayerCount()];
         Arrays.fill(blockStates, this.config.getChunkGeneratorSettings().defaultBlock());
-        return new VerticalBlockSample(world.getBottomY(), blockStates);
+        return new NoiseColumn(world.getMinY(), blockStates);
     }
 
     @Override
-    public void carve(ChunkRegion chunkRegion, long seed, NoiseConfig noiseConfig, BiomeAccess biomeAccess, StructureAccessor structureAccessor, Chunk chunk) {
+    public void applyCarvers(WorldGenRegion chunkRegion, long seed, RandomState randomState, net.minecraft.world.level.biome.BiomeManager biomeManager, StructureManager structureManager, ChunkAccess chunk) {
     }
 
     @Override
-    public void appendDebugHudText(List<String> text, NoiseConfig noiseConfig, BlockPos pos) {
+    public void addDebugScreenInfo(List<String> text, RandomState randomState, BlockPos pos) {
     }
 
     @Override
-    public int getMinimumY() {
-        return this.config.getChunkGeneratorSettings().generationShapeConfig().minimumY();
+    public int getMinY() {
+        return this.config.getChunkGeneratorSettings().noiseSettings().minY();
     }
 
     @Override
-    public int getWorldHeight() {
-        return this.config.getChunkGeneratorSettings().generationShapeConfig().height();
+    public int getGenDepth() {
+        return this.config.getChunkGeneratorSettings().noiseSettings().height();
     }
 
     @Override

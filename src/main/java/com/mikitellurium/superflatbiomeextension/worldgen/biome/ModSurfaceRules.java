@@ -1,261 +1,250 @@
 package com.mikitellurium.superflatbiomeextension.worldgen.biome;
 
 import com.google.common.collect.ImmutableList;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.world.biome.BiomeKeys;
-import net.minecraft.world.gen.YOffset;
-import net.minecraft.world.gen.noise.NoiseParametersKeys;
-import net.minecraft.world.gen.surfacebuilder.MaterialRules;
+import net.minecraft.core.HolderGetter;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.Biomes;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.levelgen.Noises;
+import net.minecraft.world.level.levelgen.SurfaceRules;
+import net.minecraft.world.level.levelgen.VerticalAnchor;
 
 public class ModSurfaceRules {
-    private static final MaterialRules.MaterialRule TERRACOTTA = block(Blocks.TERRACOTTA);
-    private static final MaterialRules.MaterialRule RED_SAND = block(Blocks.RED_SAND);
-    private static final MaterialRules.MaterialRule RED_SANDSTONE = block(Blocks.RED_SANDSTONE);
-    private static final MaterialRules.MaterialRule STONE = block(Blocks.STONE);
-    private static final MaterialRules.MaterialRule DEEPSLATE = block(Blocks.DEEPSLATE);
-    private static final MaterialRules.MaterialRule DIRT = block(Blocks.DIRT);
-    private static final MaterialRules.MaterialRule PODZOL = block(Blocks.PODZOL);
-    private static final MaterialRules.MaterialRule COARSE_DIRT = block(Blocks.COARSE_DIRT);
-    private static final MaterialRules.MaterialRule MYCELIUM = block(Blocks.MYCELIUM);
-    private static final MaterialRules.MaterialRule GRASS_BLOCK = block(Blocks.GRASS_BLOCK);
-    private static final MaterialRules.MaterialRule GRAVEL = block(Blocks.GRAVEL);
-    private static final MaterialRules.MaterialRule SAND = block(Blocks.SAND);
-    private static final MaterialRules.MaterialRule SANDSTONE = block(Blocks.SANDSTONE);
-    private static final MaterialRules.MaterialRule PACKED_ICE = block(Blocks.PACKED_ICE);
-    private static final MaterialRules.MaterialRule SNOW_BLOCK = block(Blocks.SNOW_BLOCK);
-    private static final MaterialRules.MaterialRule MUD = block(Blocks.MUD);
-    private static final MaterialRules.MaterialRule POWDER_SNOW = block(Blocks.POWDER_SNOW);
-    private static final MaterialRules.MaterialRule MOSS_BLOCK = block(Blocks.MOSS_BLOCK);
-    private static final MaterialRules.MaterialRule ICE = block(Blocks.ICE);
-    private static final MaterialRules.MaterialRule WATER = block(Blocks.WATER);
+    private static final SurfaceRules.RuleSource TERRACOTTA = block(Blocks.TERRACOTTA);
+    private static final SurfaceRules.RuleSource RED_SAND = block(Blocks.RED_SAND);
+    private static final SurfaceRules.RuleSource RED_SANDSTONE = block(Blocks.RED_SANDSTONE);
+    private static final SurfaceRules.RuleSource STONE = block(Blocks.STONE);
+    private static final SurfaceRules.RuleSource DEEPSLATE = block(Blocks.DEEPSLATE);
+    private static final SurfaceRules.RuleSource DIRT = block(Blocks.DIRT);
+    private static final SurfaceRules.RuleSource PODZOL = block(Blocks.PODZOL);
+    private static final SurfaceRules.RuleSource COARSE_DIRT = block(Blocks.COARSE_DIRT);
+    private static final SurfaceRules.RuleSource MYCELIUM = block(Blocks.MYCELIUM);
+    private static final SurfaceRules.RuleSource GRASS_BLOCK = block(Blocks.GRASS_BLOCK);
+    private static final SurfaceRules.RuleSource GRAVEL = block(Blocks.GRAVEL);
+    private static final SurfaceRules.RuleSource SAND = block(Blocks.SAND);
+    private static final SurfaceRules.RuleSource SANDSTONE = block(Blocks.SANDSTONE);
+    private static final SurfaceRules.RuleSource PACKED_ICE = block(Blocks.PACKED_ICE);
+    private static final SurfaceRules.RuleSource SNOW_BLOCK = block(Blocks.SNOW_BLOCK);
+    private static final SurfaceRules.RuleSource MUD = block(Blocks.MUD);
+    private static final SurfaceRules.RuleSource POWDER_SNOW = block(Blocks.POWDER_SNOW);
+    private static final SurfaceRules.RuleSource MOSS_BLOCK = block(Blocks.MOSS_BLOCK);
+    private static final SurfaceRules.RuleSource ICE = block(Blocks.ICE);
+    private static final SurfaceRules.RuleSource WATER = block(Blocks.WATER);
 
-    private static final MaterialRules.MaterialRule LAVA = block(Blocks.LAVA);
-    private static final MaterialRules.MaterialRule NETHERRACK = block(Blocks.NETHERRACK);
-    private static final MaterialRules.MaterialRule SOUL_SAND = block(Blocks.SOUL_SAND);
-    private static final MaterialRules.MaterialRule SOUL_SOIL = block(Blocks.SOUL_SOIL);
-    private static final MaterialRules.MaterialRule BASALT = block(Blocks.BASALT);
-    private static final MaterialRules.MaterialRule BLACKSTONE = block(Blocks.BLACKSTONE);
-    private static final MaterialRules.MaterialRule WARPED_WART_BLOCK = block(Blocks.WARPED_WART_BLOCK);
-    private static final MaterialRules.MaterialRule WARPED_NYLIUM = block(Blocks.WARPED_NYLIUM);
-    private static final MaterialRules.MaterialRule NETHER_WART_BLOCK = block(Blocks.NETHER_WART_BLOCK);
-    private static final MaterialRules.MaterialRule CRIMSON_NYLIUM = block(Blocks.CRIMSON_NYLIUM);
-
-    private static final MaterialRules.MaterialRule END_STONE = block(Blocks.END_STONE);
-
-    public static MaterialRules.MaterialRule createDefaultModSurfaceRule(int surfaceY, boolean generateWater) {
+    public static SurfaceRules.RuleSource createDefaultModSurfaceRule(HolderGetter<Biome> biomes, int surfaceY, boolean generateWater) {
         SurfaceYGetter mapY = (i) -> surfaceY + i;
-        ImmutableList.Builder<MaterialRules.MaterialRule> builder = new ImmutableList.Builder<>();
-        MaterialRules.MaterialRule grassRule = MaterialRules.sequence(
+        ImmutableList.Builder<SurfaceRules.RuleSource> builder = new ImmutableList.Builder<>();
+        SurfaceRules.RuleSource grassRule = SurfaceRules.sequence(
                 topToBottomInclusive(mapY.get(-1), mapY.get(-1), GRASS_BLOCK),
                 topToBottomInclusive(mapY.get(-2), mapY.get(-3), DIRT)
         );
-        MaterialRules.MaterialRule waterRule = MaterialRules.condition(
-                MaterialRules.water(mapY.get(0), mapY.get(0)),
-                MaterialRules.condition(MaterialRules.aboveY(YOffset.fixed(mapY.get(-3)), 0), SAND)
+        SurfaceRules.RuleSource waterRule = SurfaceRules.ifTrue(
+                SurfaceRules.waterBlockCheck(mapY.get(0), mapY.get(0)),
+                SurfaceRules.ifTrue(SurfaceRules.yBlockCheck(VerticalAnchor.absolute(mapY.get(-3)), 0), SAND)
         );
-        MaterialRules.MaterialRule sandFloorRule = MaterialRules.condition(
-                MaterialRules.water(mapY.get(0), mapY.get(0)),
-                MaterialRules.condition(MaterialRules.aboveY(YOffset.fixed(mapY.get(-3)), 0), SAND));
-        MaterialRules.MaterialRule gravelFloorRule = MaterialRules.condition(
-                MaterialRules.water(mapY.get(0), mapY.get(0)),
-                MaterialRules.condition(MaterialRules.aboveY(YOffset.fixed(mapY.get(-3)), 0), GRAVEL));
-        MaterialRules.MaterialCondition materialCondition1 = MaterialRules.noiseThreshold(NoiseParametersKeys.SURFACE, -0.909, -0.5454);
-        MaterialRules.MaterialCondition materialCondition2 = MaterialRules.noiseThreshold(NoiseParametersKeys.SURFACE, -0.1818, 0.1818);
-        MaterialRules.MaterialCondition materialCondition3 = MaterialRules.noiseThreshold(NoiseParametersKeys.SURFACE, 0.5454, 0.909);
-        MaterialRules.MaterialRule powderSnowRule1 = MaterialRules.condition(
-                MaterialRules.noiseThreshold(NoiseParametersKeys.POWDER_SNOW, 0.45, 0.58), POWDER_SNOW);
-        MaterialRules.MaterialRule powderSnowRule2 = MaterialRules.condition(
-                MaterialRules.noiseThreshold(NoiseParametersKeys.POWDER_SNOW, 0.35, 0.6), POWDER_SNOW);
-        MaterialRules.MaterialRule gravelRule = MaterialRules.sequence(MaterialRules.condition(MaterialRules.STONE_DEPTH_CEILING, STONE), GRAVEL);
-        MaterialRules.MaterialRule materialRule = MaterialRules.sequence(
-                MaterialRules.condition(
-                        MaterialRules.biome(BiomeKeys.DESERT),
-                        MaterialRules.sequence(
+        SurfaceRules.RuleSource sandFloorRule = SurfaceRules.ifTrue(
+                SurfaceRules.waterBlockCheck(mapY.get(0), mapY.get(0)),
+                SurfaceRules.ifTrue(SurfaceRules.yBlockCheck(VerticalAnchor.absolute(mapY.get(-3)), 0), SAND));
+        SurfaceRules.RuleSource gravelFloorRule = SurfaceRules.ifTrue(
+                SurfaceRules.waterBlockCheck(mapY.get(0), mapY.get(0)),
+                SurfaceRules.ifTrue(SurfaceRules.yBlockCheck(VerticalAnchor.absolute(mapY.get(-3)), 0), GRAVEL));
+        SurfaceRules.ConditionSource materialCondition1 = SurfaceRules.noiseCondition2d(Noises.SURFACE, -0.909, -0.5454);
+        SurfaceRules.ConditionSource materialCondition2 = SurfaceRules.noiseCondition2d(Noises.SURFACE, -0.1818, 0.1818);
+        SurfaceRules.ConditionSource materialCondition3 = SurfaceRules.noiseCondition2d(Noises.SURFACE, 0.5454, 0.909);
+        SurfaceRules.RuleSource powderSnowRule1 = SurfaceRules.ifTrue(
+                SurfaceRules.noiseCondition2d(Noises.POWDER_SNOW, 0.45, 0.58), POWDER_SNOW);
+        SurfaceRules.RuleSource powderSnowRule2 = SurfaceRules.ifTrue(
+                SurfaceRules.noiseCondition2d(Noises.POWDER_SNOW, 0.35, 0.6), POWDER_SNOW);
+        SurfaceRules.RuleSource gravelRule = SurfaceRules.sequence(SurfaceRules.ifTrue(SurfaceRules.UNDER_CEILING, STONE), GRAVEL);
+        SurfaceRules.RuleSource materialRule = SurfaceRules.sequence(
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.DESERT),
+                        SurfaceRules.sequence(
                                 topToBottomInclusive(mapY.get(-1), mapY.get(-3), SAND),
                                 topToBottomInclusive(mapY.get(-4), mapY.get(-10), SANDSTONE)
                         )
                 ),
-                MaterialRules.condition(
-                        MaterialRules.biome(BiomeKeys.BADLANDS, BiomeKeys.ERODED_BADLANDS),
-                        MaterialRules.condition(
-                                MaterialRules.aboveY(YOffset.fixed(mapY.get(-12)), 0),
-                                MaterialRules.sequence(
-                                        MaterialRules.condition(materialCondition1,
-                                                MaterialRules.sequence(
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.BADLANDS, Biomes.ERODED_BADLANDS),
+                        SurfaceRules.ifTrue(
+                                SurfaceRules.yBlockCheck(VerticalAnchor.absolute(mapY.get(-12)), 0),
+                                SurfaceRules.sequence(
+                                        SurfaceRules.ifTrue(materialCondition1,
+                                                SurfaceRules.sequence(
                                                         topToBottomInclusive(mapY.get(-1), mapY.get(-3), RED_SAND),
                                                         topToBottomInclusive(mapY.get(-4), mapY.get(-10), RED_SANDSTONE)
                                                 )),
-                                        MaterialRules.condition(materialCondition1, TERRACOTTA),
-                                        MaterialRules.condition(materialCondition2, TERRACOTTA),
-                                        MaterialRules.condition(materialCondition3, TERRACOTTA),
-                                        MaterialRules.terracottaBands(), RED_SANDSTONE)
+                                        SurfaceRules.ifTrue(materialCondition1, TERRACOTTA),
+                                        SurfaceRules.ifTrue(materialCondition2, TERRACOTTA),
+                                        SurfaceRules.ifTrue(materialCondition3, TERRACOTTA),
+                                        SurfaceRules.bandlands(), RED_SANDSTONE)
                         )
                 ),
-                MaterialRules.condition(
-                        MaterialRules.biome(BiomeKeys.WOODED_BADLANDS),
-                        MaterialRules.condition(
-                                MaterialRules.aboveY(YOffset.fixed(mapY.get(-2)), 0),
-                                MaterialRules.sequence(
-                                        MaterialRules.condition(materialCondition1, COARSE_DIRT),
-                                        MaterialRules.condition(materialCondition2, COARSE_DIRT),
-                                        MaterialRules.condition(materialCondition3, COARSE_DIRT),
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.WOODED_BADLANDS),
+                        SurfaceRules.ifTrue(
+                                SurfaceRules.yBlockCheck(VerticalAnchor.absolute(mapY.get(-2)), 0),
+                                SurfaceRules.sequence(
+                                        SurfaceRules.ifTrue(materialCondition1, COARSE_DIRT),
+                                        SurfaceRules.ifTrue(materialCondition2, COARSE_DIRT),
+                                        SurfaceRules.ifTrue(materialCondition3, COARSE_DIRT),
                                         grassRule
                                 )
                         )
                 ),
-                MaterialRules.condition(
-                        MaterialRules.biome(BiomeKeys.RIVER, BiomeKeys.LUKEWARM_OCEAN, BiomeKeys.DEEP_LUKEWARM_OCEAN, BiomeKeys.WARM_OCEAN),
-                        MaterialRules.sequence(
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.RIVER, Biomes.LUKEWARM_OCEAN, Biomes.DEEP_LUKEWARM_OCEAN, Biomes.WARM_OCEAN),
+                        SurfaceRules.sequence(
                                 topToBottomInclusive(mapY.get(-1), mapY.get(-1), generateWater ? WATER : SAND),
                                 sandFloorRule
                         )
                 ),
-                MaterialRules.condition(
-                        MaterialRules.biome(BiomeKeys.FROZEN_RIVER),
-                        MaterialRules.sequence(
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.FROZEN_RIVER),
+                        SurfaceRules.sequence(
                                 topToBottomInclusive(mapY.get(-1), mapY.get(-1), generateWater ? ICE : SAND),
                                 sandFloorRule
                         )
                 ),
-                MaterialRules.condition(
-                        MaterialRules.biome(BiomeKeys.OCEAN, BiomeKeys.DEEP_OCEAN, BiomeKeys.COLD_OCEAN, BiomeKeys.DEEP_COLD_OCEAN),
-                        MaterialRules.sequence(
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.OCEAN, Biomes.DEEP_OCEAN, Biomes.COLD_OCEAN, Biomes.DEEP_COLD_OCEAN),
+                        SurfaceRules.sequence(
                                 topToBottomInclusive(mapY.get(-1), mapY.get(-1), generateWater ? WATER : GRAVEL),
                                 gravelFloorRule
                         )
                 ),
-                MaterialRules.condition(
-                        MaterialRules.biome(BiomeKeys.FROZEN_OCEAN, BiomeKeys.DEEP_FROZEN_OCEAN),
-                        MaterialRules.sequence(
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.FROZEN_OCEAN, Biomes.DEEP_FROZEN_OCEAN),
+                        SurfaceRules.sequence(
                                 topToBottomInclusive(mapY.get(-1), mapY.get(-1), generateWater ? ICE : GRAVEL),
                                 gravelFloorRule
                         )
                 ),
-                MaterialRules.condition(
-                        MaterialRules.biome(BiomeKeys.BEACH, BiomeKeys.SNOWY_BEACH),
-                        MaterialRules.sequence(
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.BEACH, Biomes.SNOWY_BEACH),
+                        SurfaceRules.sequence(
                                 topToBottomInclusive(mapY.get(-1), mapY.get(-3), SAND),
                                 topToBottomInclusive(mapY.get(-4), mapY.get(-5), SANDSTONE)
                         )
                 ),
-                MaterialRules.condition(
-                        MaterialRules.biome(BiomeKeys.STONY_SHORE, BiomeKeys.STONY_PEAKS),
-                        MaterialRules.sequence(
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.STONY_SHORE, Biomes.STONY_PEAKS),
+                        SurfaceRules.sequence(
                                 topToBottomInclusive(mapY.get(-1), mapY.get(-3), STONE)
                         )
                 ),
-                MaterialRules.condition(
-                        MaterialRules.biome(BiomeKeys.OLD_GROWTH_PINE_TAIGA, BiomeKeys.OLD_GROWTH_SPRUCE_TAIGA),
-                        MaterialRules.sequence(
-                                MaterialRules.condition(surfaceNoiseThreshold(1.75), COARSE_DIRT),
-                                MaterialRules.condition(surfaceNoiseThreshold(-0.95), PODZOL))
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.OLD_GROWTH_PINE_TAIGA, Biomes.OLD_GROWTH_SPRUCE_TAIGA),
+                        SurfaceRules.sequence(
+                                SurfaceRules.ifTrue(surfaceNoiseThreshold(1.75), COARSE_DIRT),
+                                SurfaceRules.ifTrue(surfaceNoiseThreshold(-0.95), PODZOL))
                 ),
-                MaterialRules.condition(
-                        MaterialRules.biome(BiomeKeys.MANGROVE_SWAMP),
-                        MaterialRules.sequence(
-                                MaterialRules.condition(
-                                        MaterialRules.biome(BiomeKeys.MANGROVE_SWAMP),
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.MANGROVE_SWAMP),
+                        SurfaceRules.sequence(
+                                SurfaceRules.ifTrue(
+                                        SurfaceRules.isBiome(biomes, Biomes.MANGROVE_SWAMP),
                                         topToBottomInclusive(mapY.get(-2), mapY.get(-4), MUD)
                                 ),
-                                MaterialRules.condition(
-                                        MaterialRules.aboveY(YOffset.fixed(mapY.get(-1)), 0),
-                                        MaterialRules.condition(MaterialRules.noiseThreshold(NoiseParametersKeys.SURFACE_SWAMP, 0.0), generateWater ? WATER : MUD)
+                                SurfaceRules.ifTrue(
+                                        SurfaceRules.yBlockCheck(VerticalAnchor.absolute(mapY.get(-1)), 0),
+                                        SurfaceRules.ifTrue(SurfaceRules.noiseCondition2d(Noises.SWAMP, 0.0), generateWater ? WATER : MUD)
                                 )
                         )
                 ),
-                MaterialRules.condition(
-                        MaterialRules.biome(BiomeKeys.SWAMP),
-                        MaterialRules.condition(
-                                MaterialRules.aboveY(YOffset.fixed(mapY.get(-1)), 0),
-                                MaterialRules.condition(MaterialRules.noiseThreshold(NoiseParametersKeys.SURFACE_SWAMP, 0.0), generateWater ? WATER : GRASS_BLOCK)
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.SWAMP),
+                        SurfaceRules.ifTrue(
+                                SurfaceRules.yBlockCheck(VerticalAnchor.absolute(mapY.get(-1)), 0),
+                                SurfaceRules.ifTrue(SurfaceRules.noiseCondition2d(Noises.SWAMP, 0.0), generateWater ? WATER : GRASS_BLOCK)
                         )
                 ),
-                MaterialRules.condition(
-                        MaterialRules.biome(BiomeKeys.WINDSWEPT_GRAVELLY_HILLS),
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.WINDSWEPT_GRAVELLY_HILLS),
                         topToBottomInclusive(mapY.get(-1), mapY.get(-3),
-                                MaterialRules.sequence(
-                                        MaterialRules.condition(surfaceNoiseThreshold(2.0), gravelRule),
-                                        MaterialRules.condition(surfaceNoiseThreshold(1.0), STONE),
-                                        MaterialRules.condition(surfaceNoiseThreshold(-1.0), DIRT),
+                                SurfaceRules.sequence(
+                                        SurfaceRules.ifTrue(surfaceNoiseThreshold(2.0), gravelRule),
+                                        SurfaceRules.ifTrue(surfaceNoiseThreshold(1.0), STONE),
+                                        SurfaceRules.ifTrue(surfaceNoiseThreshold(-1.0), DIRT),
                                         gravelRule
                                 )
                         )
                 ),
-                MaterialRules.condition(
-                        MaterialRules.biome(BiomeKeys.SNOWY_SLOPES),
-                        MaterialRules.sequence(
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.SNOWY_SLOPES),
+                        SurfaceRules.sequence(
                                 topToBottomInclusive(mapY.get(-1), mapY.get(-3), powderSnowRule1),
                                 topToBottomInclusive(mapY.get(-1), mapY.get(-3), powderSnowRule2),
                                 topToBottomInclusive(mapY.get(-1), mapY.get(-1), SNOW_BLOCK),
                                 topToBottomInclusive(mapY.get(-1), mapY.get(-3), STONE)
                         )
                 ),
-                MaterialRules.condition(
-                        MaterialRules.biome(BiomeKeys.JAGGED_PEAKS),
-                        MaterialRules.sequence(
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.JAGGED_PEAKS),
+                        SurfaceRules.sequence(
                                 topToBottomInclusive(mapY.get(-1), mapY.get(-1), SNOW_BLOCK),
                                 topToBottomInclusive(mapY.get(-2), mapY.get(-3), STONE)
                         )
                 ),
-                MaterialRules.condition(
-                        MaterialRules.biome(BiomeKeys.GROVE),
-                        MaterialRules.condition(
-                                MaterialRules.aboveY(YOffset.fixed(mapY.get(-3)), 0),
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.GROVE),
+                        SurfaceRules.ifTrue(
+                                SurfaceRules.yBlockCheck(VerticalAnchor.absolute(mapY.get(-3)), 0),
                                 powderSnowRule1
                         )
                 ),
-                MaterialRules.condition(
-                        MaterialRules.biome(BiomeKeys.FROZEN_PEAKS),
-                        MaterialRules.condition(
-                                MaterialRules.aboveY(YOffset.fixed(mapY.get(-12)), 0),
-                                MaterialRules.sequence(
-                                        MaterialRules.condition(MaterialRules.noiseThreshold(NoiseParametersKeys.PACKED_ICE, 0.0, 0.2), PACKED_ICE),
-                                        MaterialRules.condition(MaterialRules.noiseThreshold(NoiseParametersKeys.ICE, 0.0, 0.025), ICE),
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.FROZEN_PEAKS),
+                        SurfaceRules.ifTrue(
+                                SurfaceRules.yBlockCheck(VerticalAnchor.absolute(mapY.get(-12)), 0),
+                                SurfaceRules.sequence(
+                                        SurfaceRules.ifTrue(SurfaceRules.noiseCondition2d(Noises.PACKED_ICE, 0.0, 0.2), PACKED_ICE),
+                                        SurfaceRules.ifTrue(SurfaceRules.noiseCondition2d(Noises.ICE, 0.0, 0.025), ICE),
                                         topToBottomInclusive(mapY.get(-1), mapY.get(-3), STONE)
                                 )
                         )
                 ),
-                MaterialRules.condition(
-                        MaterialRules.biome(BiomeKeys.ICE_SPIKES),
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.ICE_SPIKES),
                         topToBottomInclusive(mapY.get(-1), mapY.get(-1), SNOW_BLOCK)
                 ),
-                MaterialRules.condition(
-                        MaterialRules.biome(BiomeKeys.DRIPSTONE_CAVES),
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.DRIPSTONE_CAVES),
                         topToBottomInclusive(mapY.get(-1), mapY.get(-3), STONE)
                 ),
-                MaterialRules.condition(
-                        MaterialRules.biome(BiomeKeys.LUSH_CAVES),
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.LUSH_CAVES),
                         topToBottomInclusive(mapY.get(-1), mapY.get(-1), MOSS_BLOCK)
                 ),
-                MaterialRules.condition(
-                        MaterialRules.biome(BiomeKeys.DEEP_DARK), DEEPSLATE
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.DEEP_DARK), DEEPSLATE
                 ),
-                MaterialRules.condition(
-                        MaterialRules.biome(BiomeKeys.MUSHROOM_FIELDS),
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.MUSHROOM_FIELDS),
                         topToBottomInclusive(mapY.get(-1), mapY.get(-1), MYCELIUM)
                 ),
                 grassRule,
                 waterRule
         );
         builder.add(materialRule);
-        return MaterialRules.sequence(builder.build().toArray(MaterialRules.MaterialRule[]::new));
+        return SurfaceRules.sequence(builder.build().toArray(SurfaceRules.RuleSource[]::new));
     }
 
 
-    private static MaterialRules.MaterialRule topToBottomInclusive(int top, int bottom, MaterialRules.MaterialRule rule) {
-        return MaterialRules.condition(
-                MaterialRules.aboveY(YOffset.fixed(bottom), 0),
-                MaterialRules.condition(
-                        MaterialRules.not(MaterialRules.aboveY(YOffset.fixed(top + 1), 0)), rule));
+    private static SurfaceRules.RuleSource topToBottomInclusive(int top, int bottom, SurfaceRules.RuleSource rule) {
+        return SurfaceRules.ifTrue(
+                SurfaceRules.yBlockCheck(VerticalAnchor.absolute(bottom), 0),
+                SurfaceRules.ifTrue(
+                        SurfaceRules.not(SurfaceRules.yBlockCheck(VerticalAnchor.absolute(top + 1), 0)), rule));
     }
 
-    private static MaterialRules.MaterialCondition surfaceNoiseThreshold(double min) {
-        return MaterialRules.noiseThreshold(NoiseParametersKeys.SURFACE, min / 8.25, Double.MAX_VALUE);
+    private static SurfaceRules.ConditionSource surfaceNoiseThreshold(double min) {
+        return SurfaceRules.noiseCondition2d(Noises.SURFACE, min / 8.25, Double.MAX_VALUE);
     }
 
-    private static MaterialRules.MaterialRule block(Block block) {
-        return MaterialRules.block(block.getDefaultState());
+    private static SurfaceRules.RuleSource block(Block block) {
+        return SurfaceRules.state(block.defaultBlockState());
     }
 
     @FunctionalInterface

@@ -1,33 +1,38 @@
 package com.mikitellurium.superflatbiomeextension.worldgen;
 
-import com.mikitellurium.superflatbiomeextension.mixin.DensityFunctionsAccessor;
+import com.google.common.base.Suppliers;
 import com.mikitellurium.superflatbiomeextension.registry.GenerationShapeConfigRegistry;
-import com.mikitellurium.superflatbiomeextension.worldgen.biome.FlatBiomeParameters;
 import com.mikitellurium.superflatbiomeextension.worldgen.biome.ModSurfaceRules;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.block.Blocks;
-import net.minecraft.registry.BuiltinRegistries;
-import net.minecraft.registry.RegistryEntryLookup;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.entry.RegistryEntryList;
-import net.minecraft.util.math.noise.DoublePerlinNoiseSampler;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.GenerationSettings;
-import net.minecraft.world.gen.GenerationStep;
-import net.minecraft.world.gen.chunk.ChunkGeneratorSettings;
-import net.minecraft.world.gen.chunk.GenerationShapeConfig;
-import net.minecraft.world.gen.densityfunction.DensityFunction;
-import net.minecraft.world.gen.feature.PlacedFeature;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderGetter;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeGenerationSettings;
+import net.minecraft.world.level.biome.Climate;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.levelgen.DensityFunction;
+import net.minecraft.world.level.levelgen.DensityFunctions;
+import net.minecraft.world.level.levelgen.GenerationStep;
+import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
+import net.minecraft.world.level.levelgen.NoiseRouter;
+import net.minecraft.world.level.levelgen.NoiseRouterData;
+import net.minecraft.world.level.levelgen.NoiseSettings;
+import net.minecraft.world.level.levelgen.Noises;
+import net.minecraft.world.level.levelgen.SurfaceRules;
+import net.minecraft.world.level.levelgen.placement.PlacedFeature;
+import net.minecraft.world.level.levelgen.synth.NormalNoise;
 
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public class CustomFlatGeneratorConfig {
-    public static final Codec<CustomFlatGeneratorConfig> CODEC = RecordCodecBuilder.create(
+    public static final MapCodec<CustomFlatGeneratorConfig> CODEC = RecordCodecBuilder.mapCodec(
             (instance) -> instance.group(
                     GenerationShapeConfigRegistry.CODEC.optionalFieldOf("shape_config", GenerationShapeConfigRegistry.SURFACE).forGetter((config) -> config.shapeConfig),
                     Codec.INT.fieldOf("layer_count").forGetter((config) -> config.layerCount),
@@ -35,61 +40,69 @@ public class CustomFlatGeneratorConfig {
                     Codec.BOOL.fieldOf("has_features").forGetter((config) -> config.hasFeatures),
                     Codec.BOOL.fieldOf("has_structures").forGetter(CustomFlatGeneratorConfig::hasStructures),
                     Codec.BOOL.fieldOf("has_lava_lakes").forGetter(CustomFlatGeneratorConfig::hasLakes),
-                    Codec.BOOL.fieldOf("generate_ores").forGetter(CustomFlatGeneratorConfig::generateOres)
+                    Codec.BOOL.fieldOf("generate_ores").forGetter(CustomFlatGeneratorConfig::generateOres),
+                    RegistryOps.retrieveGetter(Registries.BIOME),
+                    RegistryOps.retrieveGetter(Registries.DENSITY_FUNCTION),
+                    RegistryOps.retrieveGetter(Registries.NOISE)
             ).apply(instance, CustomFlatGeneratorConfig::new)
     );
-    private final GenerationShapeConfig shapeConfig;
+    private final NoiseSettings shapeConfig;
     private final int layerCount;
     private final boolean generateWater;
     private final boolean hasFeatures;
     private final Map<Integer, FeatureStepCheck> featureChecks;
-    private final ChunkGeneratorSettings settings;
+    private final HolderGetter<Biome> biomes;
+    private final HolderGetter<DensityFunction> densityFunctions;
+    private final HolderGetter<NormalNoise.NoiseParameters> noises;
+    private final Supplier<NoiseGeneratorSettings> settings;
 
-    public CustomFlatGeneratorConfig(GenerationShapeConfig shapeConfig, int layerCount, boolean generateWater, boolean hasFeatures, boolean hasStructures, boolean hasLakes, boolean generateOres) {
+    public CustomFlatGeneratorConfig(NoiseSettings shapeConfig, int layerCount, boolean generateWater, boolean hasFeatures, boolean hasStructures, boolean hasLakes, boolean generateOres,
+                                     HolderGetter<Biome> biomes, HolderGetter<DensityFunction> densityFunctions, HolderGetter<NormalNoise.NoiseParameters> noises) {
         validateLayerCount(layerCount);
         this.shapeConfig = shapeConfig;
         this.layerCount = layerCount;
         this.generateWater = generateWater;
         this.hasFeatures = hasFeatures;
         this.featureChecks = Map.of(
-                GenerationStep.Feature.LAKES.ordinal(), new FeatureStepCheck(hasLakes, GenerationStep.Feature.LAKES),
-                GenerationStep.Feature.UNDERGROUND_ORES.ordinal(), new FeatureStepCheck(generateOres, GenerationStep.Feature.UNDERGROUND_ORES),
-                GenerationStep.Feature.UNDERGROUND_STRUCTURES.ordinal(), new FeatureStepCheck(hasStructures, GenerationStep.Feature.UNDERGROUND_STRUCTURES),
-                GenerationStep.Feature.SURFACE_STRUCTURES.ordinal(), new FeatureStepCheck(hasStructures, GenerationStep.Feature.SURFACE_STRUCTURES),
-                GenerationStep.Feature.STRONGHOLDS.ordinal(), new FeatureStepCheck(hasStructures, GenerationStep.Feature.STRONGHOLDS)
+                GenerationStep.Decoration.LAKES.ordinal(), new FeatureStepCheck(hasLakes, GenerationStep.Decoration.LAKES),
+                GenerationStep.Decoration.UNDERGROUND_ORES.ordinal(), new FeatureStepCheck(generateOres, GenerationStep.Decoration.UNDERGROUND_ORES),
+                GenerationStep.Decoration.UNDERGROUND_STRUCTURES.ordinal(), new FeatureStepCheck(hasStructures, GenerationStep.Decoration.UNDERGROUND_STRUCTURES),
+                GenerationStep.Decoration.SURFACE_STRUCTURES.ordinal(), new FeatureStepCheck(hasStructures, GenerationStep.Decoration.SURFACE_STRUCTURES),
+                GenerationStep.Decoration.STRONGHOLDS.ordinal(), new FeatureStepCheck(hasStructures, GenerationStep.Decoration.STRONGHOLDS)
         );
-        this.settings = this.createSettings(shapeConfig.minimumY() + layerCount);
+        this.biomes = biomes;
+        this.densityFunctions = densityFunctions;
+        this.noises = noises;
+        this.settings = Suppliers.memoize(this::createSettings);
     }
 
-    public ChunkGeneratorSettings getChunkGeneratorSettings() {
-        return settings;
+    public NoiseGeneratorSettings getChunkGeneratorSettings() {
+        return settings.get();
     }
 
-    public GenerationSettings createGenerationSettings(RegistryEntry<Biome> biomeEntry) {
-        GenerationSettings.Builder builder = new GenerationSettings.Builder();
-        GenerationSettings generationSettings = biomeEntry.value().getGenerationSettings();
-        List<RegistryEntryList<PlacedFeature>> list = generationSettings.getFeatures();
+    public BiomeGenerationSettings createGenerationSettings(Holder<Biome> biomeEntry) {
+        BiomeGenerationSettings.PlainBuilder builder = new BiomeGenerationSettings.PlainBuilder();
+        BiomeGenerationSettings biomeGenerationSettings = biomeEntry.value().getGenerationSettings();
+        List<net.minecraft.core.HolderSet<PlacedFeature>> list = biomeGenerationSettings.features();
         for (int i = 0; i < list.size(); i++) {
             if ((this.hasFeatures() && !featureChecks.containsKey(i))
                     || (this.featureChecks.containsKey(i) && this.featureChecks.get(i).test(i)))
-                for (RegistryEntry<PlacedFeature> feature : list.get(i)) {
+                for (Holder<PlacedFeature> feature : list.get(i)) {
                     builder.addFeature(i, feature);
                 }
         }
         return builder.build();
     }
 
-    private ChunkGeneratorSettings createSettings(int surfaceY) {
-        RegistryWrapper.WrapperLookup lookup = BuiltinRegistries.createWrapperLookup();
-        RegistryEntryLookup<DensityFunction> densityFunctionRegistry = lookup.getOrThrow(RegistryKeys.DENSITY_FUNCTION);
-        RegistryEntryLookup<DoublePerlinNoiseSampler.NoiseParameters> noiseParametersRegistry = lookup.getOrThrow(RegistryKeys.NOISE_PARAMETERS);
-        return new ChunkGeneratorSettings(
+    private NoiseGeneratorSettings createSettings() {
+        int surfaceY = shapeConfig.minY() + layerCount;
+        return new NoiseGeneratorSettings(
                 this.shapeConfig,
-                Blocks.STONE.getDefaultState(),
-                Blocks.WATER.getDefaultState(),
-                DensityFunctionsAccessor.invokeCreateSurfaceNoiseRouter(densityFunctionRegistry, noiseParametersRegistry, false, false),
-                ModSurfaceRules.createDefaultModSurfaceRule(surfaceY, this.generateWater()),
-                new FlatBiomeParameters().getSpawnSuitabilityNoises(),
+                Blocks.STONE.defaultBlockState(),
+                Blocks.WATER.defaultBlockState(),
+                createSurfaceNoiseRouter(this.densityFunctions, this.noises),
+                ModSurfaceRules.createDefaultModSurfaceRule(this.biomes, surfaceY, this.generateWater()),
+                FLAT_SPAWN_TARGET,
                 surfaceY - 1,
                 false,
                 false,
@@ -98,12 +111,74 @@ public class CustomFlatGeneratorConfig {
         );
     }
 
-    public GenerationShapeConfig getGenerationShapeConfig() {
+    private static NoiseRouter createSurfaceNoiseRouter(HolderGetter<DensityFunction> densityFunctionLookup, HolderGetter<NormalNoise.NoiseParameters> noiseParametersLookup) {
+        DensityFunction shiftX = densityFunctionLookup.getOrThrow(NoiseRouterData.SHIFT_X).value();
+        DensityFunction shiftZ = densityFunctionLookup.getOrThrow(NoiseRouterData.SHIFT_Z).value();
+        return new NoiseRouter(
+                DensityFunctions.zero(),
+                DensityFunctions.zero(),
+                DensityFunctions.zero(),
+                DensityFunctions.zero(),
+                DensityFunctions.shiftedNoise2d(shiftX, shiftZ, 0.25, noiseParametersLookup.getOrThrow(Noises.TEMPERATURE)),
+                DensityFunctions.shiftedNoise2d(shiftX, shiftZ, 0.25, noiseParametersLookup.getOrThrow(Noises.VEGETATION)),
+                densityFunctionLookup.getOrThrow(NoiseRouterData.CONTINENTS).value(),
+                densityFunctionLookup.getOrThrow(NoiseRouterData.EROSION).value(),
+                densityFunctionLookup.getOrThrow(NoiseRouterData.DEPTH).value(),
+                densityFunctionLookup.getOrThrow(NoiseRouterData.RIDGES).value(),
+                DensityFunctions.zero(),
+                DensityFunctions.zero(),
+                DensityFunctions.zero(),
+                DensityFunctions.zero(),
+                DensityFunctions.zero()
+        );
+    }
+
+    private static final List<Climate.ParameterPoint> FLAT_SPAWN_TARGET = createSpawnTarget();
+
+    private static List<Climate.ParameterPoint> createSpawnTarget() {
+        Climate.Parameter defaultParameter = Climate.Parameter.span(-1.0F, 1.0F);
+        Climate.Parameter riverContinentalness = Climate.Parameter.span(-0.11F, 0.55F);
+        Climate.Parameter depth = Climate.Parameter.point(0.0F);
+        return List.of(
+                new Climate.ParameterPoint(
+                        defaultParameter,
+                        defaultParameter,
+                        Climate.Parameter.span(riverContinentalness, defaultParameter),
+                        defaultParameter,
+                        depth,
+                        Climate.Parameter.span(-1.0F, -0.16F),
+                        0L
+                ),
+                new Climate.ParameterPoint(
+                        defaultParameter,
+                        defaultParameter,
+                        Climate.Parameter.span(riverContinentalness, defaultParameter),
+                        defaultParameter,
+                        depth,
+                        Climate.Parameter.span(0.16F, 1.0F),
+                        0L
+                )
+        );
+    }
+
+    public NoiseSettings getGenerationShapeConfig() {
         return this.shapeConfig;
     }
 
     public int getLayerCount() {
         return this.layerCount;
+    }
+
+    public HolderGetter<Biome> getBiomes() {
+        return this.biomes;
+    }
+
+    public HolderGetter<DensityFunction> getDensityFunctions() {
+        return this.densityFunctions;
+    }
+
+    public HolderGetter<NormalNoise.NoiseParameters> getNoises() {
+        return this.noises;
     }
 
     public boolean generateWater() {
@@ -115,17 +190,17 @@ public class CustomFlatGeneratorConfig {
     }
 
     public boolean hasLakes() {
-        return featureChecks.get(GenerationStep.Feature.LAKES.ordinal()).isEnabled();
+        return featureChecks.get(GenerationStep.Decoration.LAKES.ordinal()).isEnabled();
     }
 
     public boolean generateOres() {
-        return featureChecks.get(GenerationStep.Feature.UNDERGROUND_ORES.ordinal()).isEnabled();
+        return featureChecks.get(GenerationStep.Decoration.UNDERGROUND_ORES.ordinal()).isEnabled();
     }
 
     public boolean hasStructures() {
-        return featureChecks.get(GenerationStep.Feature.UNDERGROUND_STRUCTURES.ordinal()).isEnabled() ||
-                featureChecks.get(GenerationStep.Feature.SURFACE_STRUCTURES.ordinal()).isEnabled() ||
-                featureChecks.get(GenerationStep.Feature.STRONGHOLDS.ordinal()).isEnabled();
+        return featureChecks.get(GenerationStep.Decoration.UNDERGROUND_STRUCTURES.ordinal()).isEnabled() ||
+                featureChecks.get(GenerationStep.Decoration.SURFACE_STRUCTURES.ordinal()).isEnabled() ||
+                featureChecks.get(GenerationStep.Decoration.STRONGHOLDS.ordinal()).isEnabled();
     }
 
     private static void validateLayerCount(int layerCount) {
@@ -135,7 +210,7 @@ public class CustomFlatGeneratorConfig {
     }
 
     @SuppressWarnings("DataFlowIssue")
-    public static CustomFlatGeneratorConfig createDefault() {
+    public static CustomFlatGeneratorConfig createDefault(net.minecraft.core.HolderGetter.Provider holderLookup) {
         return new CustomFlatGeneratorConfig(
                 GenerationShapeConfigRegistry.SURFACE,
                 64,
@@ -143,11 +218,14 @@ public class CustomFlatGeneratorConfig {
                 true,
                 true,
                 false,
-                false
+                false,
+                holderLookup.lookupOrThrow(Registries.BIOME),
+                holderLookup.lookupOrThrow(Registries.DENSITY_FUNCTION),
+                holderLookup.lookupOrThrow(Registries.NOISE)
         );
     }
 
-    private record FeatureStepCheck(boolean isEnabled, GenerationStep.Feature featureStep) implements Predicate<Integer> {
+    private record FeatureStepCheck(boolean isEnabled, GenerationStep.Decoration featureStep) implements Predicate<Integer> {
         @Override
         public boolean test(Integer i) {
             return isEnabled && i == featureStep.ordinal();

@@ -1,15 +1,15 @@
 package com.mikitellurium.superflatbiomeextension.client;
 
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.render.RenderTickCounter;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.biome.Biome;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
+import net.minecraft.world.level.biome.Biome;
 
 import java.util.Arrays;
 import java.util.Locale;
@@ -18,34 +18,29 @@ public class DebugOverlay implements HudElement {
     private int y = 0;
 
     @Override
-    public void render(DrawContext context, RenderTickCounter tickCounter) {
-        if (!shouldShowDebugHud()) return;
+    public void extractRenderState(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
         y = 2;
-        MinecraftClient minecraft = MinecraftClient.getInstance();
-        ClientWorld world = minecraft.world;
-        ClientPlayerEntity player = minecraft.player;
+        Minecraft minecraft = Minecraft.getInstance();
+        ClientLevel world = minecraft.level;
+        LocalPlayer player = minecraft.player;
         if (world != null && player != null) {
-            RegistryEntry<Biome> biome = world.getBiome(player.getBlockPos());
-            Direction direction = player.getHorizontalFacing();
-            write(context,
-                    biome.getIdAsString(),
+            Holder<Biome> biome = world.getBiome(player.blockPosition());
+            Direction direction = player.getDirection();
+            write(graphics,
+                    biome.getRegisteredName(),
                     String.format(Locale.ROOT, "X: %.3f", player.getX()),
                     String.format(Locale.ROOT, "Y: %.3f", player.getY()),
                     String.format(Locale.ROOT, "Z: %.3f", player.getZ()),
-                    String.format(Locale.ROOT, "Facing: %s", direction.asString())
+                    String.format(Locale.ROOT, "Facing: %s", direction.getSerializedName())
             );
         }
     }
 
-    private void write(DrawContext context, String... texts) {
-        TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
+    private void write(GuiGraphicsExtractor graphics, String... texts) {
+        Font textRenderer = Minecraft.getInstance().font;
         Arrays.stream(texts).forEach((text) -> {
-            context.drawText(textRenderer, text, 5, y, -1, false);
-            y += textRenderer.fontHeight + 1;
+            graphics.text(textRenderer, text, 5, y, -1);
+            y += textRenderer.lineHeight + 1;
         });
-    }
-
-    private boolean shouldShowDebugHud() {
-        return !MinecraftClient.getInstance().inGameHud.getDebugHud().shouldShowDebugHud();
     }
 }

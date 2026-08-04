@@ -2,15 +2,15 @@ package com.mikitellurium.superflatbiomeextension.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mikitellurium.superflatbiomeextension.worldgen.CustomFlatChunkGenerator;
-import net.minecraft.structure.OceanMonumentGenerator;
-import net.minecraft.structure.StructurePiecesCollector;
-import net.minecraft.util.BlockRotation;
-import net.minecraft.util.math.BlockBox;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.gen.chunk.ChunkGenerator;
-import net.minecraft.world.gen.structure.OceanMonumentStructure;
-import net.minecraft.world.gen.structure.Structure;
-import net.minecraft.world.gen.structure.WoodlandMansionStructure;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import net.minecraft.world.level.levelgen.structure.Structure;
+import net.minecraft.world.level.levelgen.structure.pieces.StructurePiecesBuilder;
+import net.minecraft.world.level.levelgen.structure.structures.OceanMonumentPieces;
+import net.minecraft.world.level.levelgen.structure.structures.OceanMonumentStructure;
+import net.minecraft.world.level.levelgen.structure.structures.WoodlandMansionStructure;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -24,15 +24,16 @@ public class StructureFixMixin {
     @Mixin(WoodlandMansionStructure.class)
     public abstract static class WoodlandMansion {
         @Shadow
-        protected abstract void addPieces(StructurePiecesCollector collector, Structure.Context context, BlockPos pos, BlockRotation rotation);
+        private void generatePieces(StructurePiecesBuilder builder, Structure.GenerationContext context, BlockPos startPos, Rotation rotation) {
+        }
         /*
          * Mansions don't generate if their y coordinate is lower than 60, this allow mansions to
          * generate at any height if the world is custom flat.
          */
-        @Inject(method = "getStructurePosition", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/math/BlockPos;getY()I"), cancellable = true)
-        private void inject$returnPositionIfFlat(Structure.Context context, CallbackInfoReturnable<Optional<Structure.StructurePosition>> cir, @Local BlockRotation rotation, @Local BlockPos pos) {
+        @Inject(method = "findGenerationPoint", at = @At(value = "INVOKE", target = "Lnet/minecraft/core/BlockPos;getY()I"), cancellable = true)
+        private void inject$returnPositionIfFlat(Structure.GenerationContext context, CallbackInfoReturnable<Optional<Structure.GenerationStub>> cir, @Local Rotation rotation, @Local BlockPos pos) {
             if (context.chunkGenerator() instanceof CustomFlatChunkGenerator) {
-                cir.setReturnValue(Optional.of(new Structure.StructurePosition(pos, (collector) -> this.addPieces(collector, context, pos, rotation))));
+                cir.setReturnValue(Optional.of(new Structure.GenerationStub(pos, (builder) -> this.generatePieces(builder, context, pos, rotation))));
             }
         }
     }
@@ -42,17 +43,16 @@ public class StructureFixMixin {
          * Monuments always generate at y 39, this makes monuments always generate below sea level in custom flat worlds
          * unless the surface is lower than the monument height which make the monument generate over the sea level.
          */
-        @SuppressWarnings("deprecation")
-        @Inject(method = "addPieces", at = @At(value = "TAIL"))
-        private static void inject$shiftStructure(StructurePiecesCollector collector, Structure.Context context, CallbackInfo ci) {
+        @Inject(method = "generatePieces", at = @At(value = "TAIL"))
+        private static void inject$shiftStructure(StructurePiecesBuilder builder, Structure.GenerationContext context, CallbackInfo ci) {
             ChunkGenerator chunkGenerator = context.chunkGenerator();
             if (chunkGenerator instanceof CustomFlatChunkGenerator) {
-                OceanMonumentGenerator.Base base = (OceanMonumentGenerator.Base) collector.toList().pieces().getFirst();
-                BlockBox boundingBox = base.getBoundingBox();
-                int maxAllowedShift = context.chunkGenerator().getMinimumY() - boundingBox.getMinY() + 2;
-                int shift = Math.max(chunkGenerator.getSeaLevel() - boundingBox.getMaxY(), maxAllowedShift);
+                OceanMonumentPieces.MonumentBuilding base = (OceanMonumentPieces.MonumentBuilding) builder.build().pieces().getFirst();
+                BoundingBox boundingBox = base.getBoundingBox();
+                int maxAllowedShift = chunkGenerator.getMinY() - boundingBox.minY() + 2;
+                int shift = Math.max(chunkGenerator.getSeaLevel() - boundingBox.maxY(), maxAllowedShift);
                 base.getBoundingBox().move(0, shift, 0);
-                for (OceanMonumentGenerator.Piece piece : ((StructureAccessors.OceanMonumentBase)base).getChildren()) {
+                for (net.minecraft.world.level.levelgen.structure.StructurePiece piece : ((StructureAccessors.OceanMonumentBase)base).getChildPieces()) {
                     piece.getBoundingBox().move(0, shift, 0);
                 }
             }

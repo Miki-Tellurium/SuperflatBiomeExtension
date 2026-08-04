@@ -1,6 +1,7 @@
 package com.mikitellurium.superflatbiomeextension;
 
 import com.mikitellurium.superflatbiomeextension.client.DebugOverlay;
+import com.mikitellurium.superflatbiomeextension.client.ModPresetEditors;
 import com.mikitellurium.superflatbiomeextension.util.FastId;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;

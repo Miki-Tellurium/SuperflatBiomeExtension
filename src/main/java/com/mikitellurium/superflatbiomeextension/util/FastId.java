@@ -1,11 +1,11 @@
 package com.mikitellurium.superflatbiomeextension.util;
 
 import com.mikitellurium.superflatbiomeextension.SuperflatBiomeExtension;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 
 public class FastId {
     public static Identifier of(String namespace, String id) {
-        return Identifier.of(namespace, id);
+        return Identifier.fromNamespaceAndPath(namespace, id);
     }
 
     public static Identifier ofMod(String id) {
@@ -13,7 +13,7 @@ public class FastId {
     }
 
     public static Identifier ofMc(String id) {
-        return Identifier.of(id);
+        return Identifier.withDefaultNamespace(id);
     }
 
     public static String modId() {

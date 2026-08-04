@@ -1,8 +1,9 @@
 package com.mikitellurium.superflatbiomeextension.mixin;
 
-import net.minecraft.structure.OceanMonumentGenerator;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.gen.structure.JigsawStructure;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.levelgen.structure.StructurePiece;
+import net.minecraft.world.level.levelgen.structure.structures.JigsawStructure;
+import net.minecraft.world.level.levelgen.structure.structures.OceanMonumentPieces;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
@@ -14,8 +15,8 @@ public class StructureAccessors {
     public interface Jigsaw {
         @Accessor Optional<Identifier> getStartJigsawName();
     }
-    @Mixin(OceanMonumentGenerator.Base.class)
+    @Mixin(OceanMonumentPieces.MonumentBuilding.class)
     public interface OceanMonumentBase {
-        @Accessor List<OceanMonumentGenerator.Piece> getChildren();
+        @Accessor List<StructurePiece> getChildPieces();
     }
 }

@@ -1,31 +1,29 @@
 package com.mikitellurium.superflatbiomeextension.registry;
 
-import com.mikitellurium.superflatbiomeextension.mixin.GenerationShapeConfigAccessor;
 import com.mikitellurium.superflatbiomeextension.util.FastId;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
 import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
 import net.fabricmc.fabric.api.event.registry.RegistryAttribute;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.gen.chunk.GenerationShapeConfig;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.levelgen.NoiseSettings;
 
 public class GenerationShapeConfigRegistry {
-    public static final RegistryKey<Registry<GenerationShapeConfig>> REGISTRY_KEY = RegistryKey.ofRegistry(FastId.ofMod("generation_shape_config"));
-    public static final Registry<GenerationShapeConfig> REGISTRY = FabricRegistryBuilder.createSimple(REGISTRY_KEY).attribute(RegistryAttribute.OPTIONAL).buildAndRegister();
-    public static final Codec<GenerationShapeConfig> REGISTRY_CODEC = Identifier.CODEC
+    public static final ResourceKey<Registry<NoiseSettings>> REGISTRY_KEY = ResourceKey.createRegistryKey(FastId.ofMod("generation_shape_config"));
+    public static final Registry<NoiseSettings> REGISTRY = FabricRegistryBuilder.create(REGISTRY_KEY).attribute(RegistryAttribute.OPTIONAL).buildAndRegister();
+    public static final Codec<NoiseSettings> REGISTRY_CODEC = Identifier.CODEC
             .xmap(
-                    (id) -> REGISTRY.getOptionalValue(id).orElseThrow(() -> new IllegalArgumentException("Unknown GenerationShapeConfig: " + id)),
-                    REGISTRY::getId
+                    (id) -> REGISTRY.getOptional(id).orElseThrow(() -> new IllegalArgumentException("Unknown GenerationShapeConfig: " + id)),
+                    REGISTRY::getKey
             );
-    public static final Codec<GenerationShapeConfig> CODEC = Codec.withAlternative(GenerationShapeConfig.CODEC, REGISTRY_CODEC);
+    public static final Codec<NoiseSettings> CODEC = Codec.withAlternative(NoiseSettings.CODEC, REGISTRY_CODEC);
 
-    public static final GenerationShapeConfig SURFACE = GenerationShapeConfigAccessor.getSURFACE();
-    public static final GenerationShapeConfig NETHER = GenerationShapeConfigAccessor.getNETHER();
-    public static final GenerationShapeConfig END = GenerationShapeConfigAccessor.getEND();
-    public static final GenerationShapeConfig CAVES = GenerationShapeConfigAccessor.getCAVES();
-    public static final GenerationShapeConfig FLOATING_ISLANDS = GenerationShapeConfigAccessor.getFLOATING_ISLANDS();
+    public static final NoiseSettings SURFACE = NoiseSettings.create(-64, 384, 1, 2);
+    public static final NoiseSettings NETHER = NoiseSettings.create(0, 256, 1, 2);
+    public static final NoiseSettings END = NoiseSettings.create(0, 256, 1, 2);
+    public static final NoiseSettings CAVES = NoiseSettings.create(-64, 384, 1, 2);
+    public static final NoiseSettings FLOATING_ISLANDS = NoiseSettings.create(0, 256, 1, 2);
 
     public static void init() {
         Registry.register(REGISTRY, FastId.ofMc("surface"), SURFACE);

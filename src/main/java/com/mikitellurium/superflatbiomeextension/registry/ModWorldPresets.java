@@ -1,15 +1,10 @@
 package com.mikitellurium.superflatbiomeextension.registry;
 
 import com.mikitellurium.superflatbiomeextension.util.FastId;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.gen.WorldPreset;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.levelgen.presets.WorldPreset;
 
 public class ModWorldPresets {
-    public static final RegistryKey<WorldPreset> FLAT_BIOME_EXTENDED = of("flat_biome_extended");
-
-    private static RegistryKey<WorldPreset> of(String id) {
-        return RegistryKey.of(RegistryKeys.WORLD_PRESET, FastId.ofMod(id));
-    }
+    public static final ResourceKey<WorldPreset> FLAT_BIOME_EXTENDED = ResourceKey.create(Registries.WORLD_PRESET, FastId.ofMod("flat_biome_extended"));
 }

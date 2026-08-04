@@ -1,24 +1,20 @@
 {
   "required": true,
   "package": "com.mikitellurium.superflatbiomeextension.mixin",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "JAVA_25",
   "mixins": [
-    "ChunkNoiseSamplerAccessor",
-    "DensityFunctionsAccessor",
-    "DimensionOptionsRegistryHolderMixin",
-    "GenerationShapeConfigAccessor",
-    "JigsawStructureAccessor",
-    "PlacedFeatureFixMixin$Geode",
-    "PlacedFeatureFixMixin$IceSpike",
-    "ServerChunkLoadingManagerMixin",
+    "ChunkMapMixin",
     "StructureAccessors$Jigsaw",
     "StructureAccessors$OceanMonumentBase",
     "StructureFixMixin$OceanMonument",
     "StructureFixMixin$WoodlandMansion",
-    "SurfaceBuilderMixin"
+    "SurfaceSystemMixin",
+    "WorldDimensionsMixin"
   ],
   "client": [
-    "WorldCreatorMixin"
+    "PlacedFeatureFixMixin$Geode",
+    "PlacedFeatureFixMixin$IceSpike",
+    "WorldCreationUiStateMixin"
   ],
   "injectors": {
     "defaultRequire": 1
