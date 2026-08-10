@@ -7,9 +7,12 @@
 	"authors": [
 		"Miki Tellurium"
 	],
+	"contributors": [
+		"Codfish789"
+	],
 	"contact": {
-		"homepage": "",
-		"sources": ""
+		"homepage": "https://modrinth.com/mod/superflat-biome-extension",
+		"sources": "https://github.com/Miki-Tellurium/SuperflatBiomeExtension"
 	},
 	"license": "MIT License",
 	"icon": "assets/superflatbiomextension_logo.png",
@@ -33,5 +36,13 @@
 	},
 	"suggests": {
 		"another-mod": "*"
+	},
+	"custom": {
+		"${mod_id}:credits": [
+			{
+				"contributor": "Codfish789",
+				"reason": "Most of the work of porting to MC 26.2 and adding more data packs support"
+			}
+		]
 	}
 }
