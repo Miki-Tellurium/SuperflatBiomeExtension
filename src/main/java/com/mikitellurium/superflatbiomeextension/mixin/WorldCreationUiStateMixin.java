@@ -15,12 +15,13 @@ import java.util.Optional;
 
 @Mixin(WorldCreationUiState.class)
 public abstract class WorldCreationUiStateMixin {
+    @SuppressWarnings("unchecked")
     @WrapOperation(method = {"getPresetEditor", "updatePresetLists"}, at = @At(value = "INVOKE", target = "Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;"))
-    private PresetEditor wrapOperation$getPresetEditor(Map<Optional<ResourceKey<WorldPreset>>, PresetEditor> map, Object key, Operation<PresetEditor> original) {
+    private <V> V wrapOperation$getPresetEditor(Map<Optional<ResourceKey<WorldPreset>>, PresetEditor> map, Object key, Operation<PresetEditor> original) {
         PresetEditor editor = original.call(map, key);
         if (editor == null) {
-            editor = ModPresetEditors.EDITORS.get(key);
+            editor = ModPresetEditors.EDITORS.get((Optional<ResourceKey<WorldPreset>>) key);
         }
-        return editor;
+        return (V) editor;
     }
 }
