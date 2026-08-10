@@ -31,6 +31,8 @@ public class ModSurfaceRules {
     private static final SurfaceRules.RuleSource MOSS_BLOCK = block(Blocks.MOSS_BLOCK);
     private static final SurfaceRules.RuleSource ICE = block(Blocks.ICE);
     private static final SurfaceRules.RuleSource WATER = block(Blocks.WATER);
+    private static final SurfaceRules.RuleSource CINNABAR = block(Blocks.CINNABAR);
+    private static final SurfaceRules.RuleSource SULFUR = block(Blocks.SULFUR);
 
     public static SurfaceRules.RuleSource createDefaultModSurfaceRule(HolderGetter<Biome> biomes, int surfaceY, boolean generateWater) {
         SurfaceYGetter mapY = (i) -> surfaceY + i;
@@ -57,6 +59,11 @@ public class ModSurfaceRules {
         SurfaceRules.RuleSource powderSnowRule2 = SurfaceRules.ifTrue(
                 SurfaceRules.noiseCondition2d(Noises.POWDER_SNOW, 0.35, 0.6), POWDER_SNOW);
         SurfaceRules.RuleSource gravelRule = SurfaceRules.sequence(SurfaceRules.ifTrue(SurfaceRules.UNDER_CEILING, STONE), GRAVEL);
+        SurfaceRules.RuleSource sulfurCaveBands = SurfaceRules.sequence(
+                SurfaceRules.ifTrue(SurfaceRules.noiseCondition3d(Noises.SULFUR_CAVE_GRADIENT, -0.4F, -0.1F), CINNABAR),
+                SurfaceRules.ifTrue(SurfaceRules.noiseCondition3d(Noises.SULFUR_CAVE_GRADIENT, 0.0, 0.4F), SULFUR),
+                SurfaceRules.ifTrue(SurfaceRules.noiseCondition3d(Noises.SULFUR_CAVE_GRADIENT, 0.4F), CINNABAR)
+        );
         SurfaceRules.RuleSource materialRule = SurfaceRules.sequence(
                 SurfaceRules.ifTrue(
                         SurfaceRules.isBiome(biomes, Biomes.DESERT),
@@ -223,6 +230,12 @@ public class ModSurfaceRules {
                 SurfaceRules.ifTrue(
                         SurfaceRules.isBiome(biomes, Biomes.MUSHROOM_FIELDS),
                         topToBottomInclusive(mapY.get(-1), mapY.get(-1), MYCELIUM)
+                ),
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.SULFUR_CAVES),
+                        topToBottomInclusive(mapY.get(-1), mapY.get(-5),
+                            SurfaceRules.sequence(sulfurCaveBands, STONE)
+                        )
                 ),
                 grassRule,
                 waterRule
