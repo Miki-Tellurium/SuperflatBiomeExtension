@@ -28,18 +28,17 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.List;
 import java.util.function.Function;
 
-public class CustomFlatBerdifier implements DensityFunctions.BeardifierOrMarker, DensityFunction.FunctionContext {
+public class FlatStructureBerdifier implements DensityFunctions.BeardifierOrMarker, DensityFunction.FunctionContext {
     private static final Identifier WORLDGEN_REGION_RANDOM = FastId.ofMc("worldgen_region_random");
     private final ChunkPos chunkPos;
     private final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
     private final Beardifier beardifier;
     private final double threshold;
-    private final Function<BlockPos, BlockState> stateFunction;
 
-    public static CustomFlatBerdifier create(ChunkPos chunkPos, StructureManager structureManager, RandomState randomState,
-                                             Function<BlockPos, BlockState> stateFunction, Function<RandomSource, Double> thresholdFunction) {
+    public static FlatStructureBerdifier create(ChunkPos chunkPos, StructureManager structureManager, RandomState randomState,
+                                                 Function<RandomSource, Double> thresholdFunction) {
         RandomSource random = randomState.getOrCreateRandomFactory(WORLDGEN_REGION_RANDOM).at(chunkPos.getWorldPosition());
-        return new CustomFlatBerdifier(chunkPos, createWeightSampler(structureManager, chunkPos), stateFunction, thresholdFunction.apply(random));
+        return new FlatStructureBerdifier(chunkPos, createWeightSampler(structureManager, chunkPos), thresholdFunction.apply(random));
     }
 
     public static Beardifier createWeightSampler(StructureManager structureManager, ChunkPos pos) {
@@ -93,17 +92,15 @@ public class CustomFlatBerdifier implements DensityFunctions.BeardifierOrMarker,
         return boundingBox == null ? newBox : BoundingBox.encapsulating(boundingBox, newBox);
     }
 
-    public CustomFlatBerdifier(ChunkPos chunkPos, Beardifier beardifier, Function<BlockPos, BlockState> stateFunction, double threshold) {
+    public FlatStructureBerdifier(ChunkPos chunkPos, Beardifier beardifier, double threshold) {
         this.chunkPos = chunkPos;
         this.beardifier = beardifier;
-        this.stateFunction = stateFunction;
         this.threshold = threshold;
     }
 
-    // Always updatePosition() before sampling
-    public BlockState sampleBlockState() {
-        double sample = this.sample();
-        return sample > threshold ? stateFunction.apply(this.pos.immutable()) : Blocks.CAVE_AIR.defaultBlockState();
+    // Remember to always updatePosition() before sampling
+    public BlockState sampleBlockState(BlockState layerState) {
+        return this.sample() > threshold ? layerState : Blocks.CAVE_AIR.defaultBlockState();
     }
 
     public double sample() {
