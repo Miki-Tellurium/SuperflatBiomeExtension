@@ -9,6 +9,7 @@ import net.minecraft.client.gui.screens.worldselection.PresetEditor;
 import net.minecraft.client.gui.screens.worldselection.WorldCreationContext;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.biome.MultiNoiseBiomeSource;
@@ -29,8 +30,7 @@ public class ModPresetEditors {
         ChunkGenerator generator = settings.selectedDimensions().overworld();
         RegistryAccess registryAccess = settings.worldgenLoadContext();
         CustomFlatGeneratorConfig config = generator instanceof CustomFlatChunkGenerator customGenerator
-                ? customGenerator.getConfig()
-                : CustomFlatGeneratorConfig.createDefault(registryAccess);
+                ? customGenerator.getConfig() : CustomFlatGeneratorConfig.createDefault(registryAccess);
         return new EditCustomFlatLevelScreen(parent, config, (newConfig) -> {
             ChunkGenerator newGenerator = createFlatGenerator(newConfig, registryAccess);
             parent.getUiState().updateDimensions((registryAccess1, dimensions) -> dimensions.replaceOverworldGenerator(registryAccess1, newGenerator));
@@ -39,7 +39,7 @@ public class ModPresetEditors {
 
     public static ChunkGenerator createFlatGenerator(CustomFlatGeneratorConfig config, RegistryAccess registryAccess) {
         Holder<MultiNoiseBiomeSourceParameterList> parameterList = registryAccess.lookupOrThrow(
-                net.minecraft.core.registries.Registries.MULTI_NOISE_BIOME_SOURCE_PARAMETER_LIST).getOrThrow(MultiNoiseBiomeSourceParameterLists.OVERWORLD);
+                Registries.MULTI_NOISE_BIOME_SOURCE_PARAMETER_LIST).getOrThrow(MultiNoiseBiomeSourceParameterLists.OVERWORLD);
         BiomeSource biomeSource = MultiNoiseBiomeSource.createFromPreset(parameterList);
         return new CustomFlatChunkGenerator(biomeSource, config);
     }

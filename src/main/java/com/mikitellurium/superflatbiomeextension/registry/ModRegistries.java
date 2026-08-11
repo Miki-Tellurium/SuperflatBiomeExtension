@@ -2,7 +2,7 @@ package com.mikitellurium.superflatbiomeextension.registry;
 
 public class ModRegistries {
     public static void register() {
-        GenerationShapeConfigRegistry.init();
+        NoiseSettingsRegistry.init();
         ModChunkGenerators.register();
     }
 }

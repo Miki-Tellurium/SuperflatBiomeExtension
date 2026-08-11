@@ -244,7 +244,6 @@ public class ModSurfaceRules {
         return SurfaceRules.sequence(builder.build().toArray(SurfaceRules.RuleSource[]::new));
     }
 
-
     private static SurfaceRules.RuleSource topToBottomInclusive(int top, int bottom, SurfaceRules.RuleSource rule) {
         return SurfaceRules.ifTrue(
                 SurfaceRules.yBlockCheck(VerticalAnchor.absolute(bottom), 0),

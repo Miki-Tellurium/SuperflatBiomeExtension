@@ -9,12 +9,13 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.levelgen.NoiseSettings;
 
-public class GenerationShapeConfigRegistry {
-    public static final ResourceKey<Registry<NoiseSettings>> REGISTRY_KEY = ResourceKey.createRegistryKey(FastId.ofMod("generation_shape_config"));
+public class NoiseSettingsRegistry {
+    public static final ResourceKey<Registry<NoiseSettings>> REGISTRY_KEY = ResourceKey.createRegistryKey(FastId.ofMod("noise_settings"));
+    // Vanilla doesn't have a NoiseSettings registry, it create it from codecs
     public static final Registry<NoiseSettings> REGISTRY = FabricRegistryBuilder.create(REGISTRY_KEY).attribute(RegistryAttribute.OPTIONAL).buildAndRegister();
     public static final Codec<NoiseSettings> REGISTRY_CODEC = Identifier.CODEC
             .xmap(
-                    (id) -> REGISTRY.getOptional(id).orElseThrow(() -> new IllegalArgumentException("Unknown GenerationShapeConfig: " + id)),
+                    (id) -> REGISTRY.getOptional(id).orElseThrow(() -> new IllegalArgumentException("Unknown NoiseSettings: " + id)),
                     REGISTRY::getKey
             );
     public static final Codec<NoiseSettings> CODEC = Codec.withAlternative(NoiseSettings.CODEC, REGISTRY_CODEC);

@@ -1,8 +1,10 @@
 package com.mikitellurium.superflatbiomeextension.worldgen;
 
+import com.mikitellurium.superflatbiomeextension.mixinutil.FlatSurfaceBuilder;
 import com.mikitellurium.superflatbiomeextension.worldgen.noise.FlatStructureBerdifier;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -14,6 +16,7 @@ import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.NoiseColumn;
 import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -38,12 +41,12 @@ public class CustomFlatChunkGenerator extends ChunkGenerator {
                     .apply(instance, instance.stable(CustomFlatChunkGenerator::new))
     );
     private final CustomFlatGeneratorConfig config;
-    private final net.minecraft.world.level.levelgen.Aquifer.FluidPicker fluidLevelPicker;
+    private final Aquifer.FluidPicker fluidLevelPicker;
 
     public CustomFlatChunkGenerator(BiomeSource biomeSource, CustomFlatGeneratorConfig config) {
         super(biomeSource, Util.memoize(config::createGenerationSettings));
         this.config = config;
-        this.fluidLevelPicker = (x, y, z) -> new net.minecraft.world.level.levelgen.Aquifer.FluidStatus(y, Blocks.AIR.defaultBlockState());
+        this.fluidLevelPicker = (x, y, z) -> new Aquifer.FluidStatus(y, Blocks.AIR.defaultBlockState());
     }
 
     @Override
@@ -81,13 +84,13 @@ public class CustomFlatChunkGenerator extends ChunkGenerator {
             Set<Holder<Biome>> possibleBiomes = collectPossibleBiomes(region, 1);
             NoiseChunk noiseChunk = protoChunk.getOrCreateNoiseChunk(chunk -> this.createNoiseChunk(chunk, structureManager, Blender.of(region), randomState));
             NoiseGeneratorSettings chunkGeneratorSettings = this.config.getChunkGeneratorSettings();
-            ((com.mikitellurium.superflatbiomeextension.mixinutil.FlatSurfaceBuilder)randomState.surfaceSystem()).mixin$setFlat();
+            ((FlatSurfaceBuilder)randomState.surfaceSystem()).mixin$setFlat();
             randomState.surfaceSystem().buildSurface(randomState, region.getBiomeManager(), chunkGeneratorSettings.useLegacyRandomSource(), context, protoChunk, noiseChunk, chunkGeneratorSettings.surfaceRule(), possibleBiomes);
         }
     }
 
     private static Set<Holder<Biome>> collectPossibleBiomes(WorldGenRegion region, int chunkRadius) {
-        Set<Holder<Biome>> chunkBiomes = new it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet<>();
+        Set<Holder<Biome>> chunkBiomes = new ReferenceOpenHashSet<>();
         ChunkPos center = region.getCenter();
         for (int z = center.z() - chunkRadius; z <= center.z() + chunkRadius; z++) {
             for (int x = center.x() - chunkRadius; x <= center.x() + chunkRadius; x++) {
@@ -103,8 +106,7 @@ public class CustomFlatChunkGenerator extends ChunkGenerator {
     }
 
     @Override
-    public void spawnOriginalMobs(WorldGenRegion region) {
-    }
+    public void spawnOriginalMobs(WorldGenRegion region) {}
 
     @Override
     public CompletableFuture<ChunkAccess> fillFromNoise(Blender blender, RandomState randomState, StructureManager structureManager, ChunkAccess chunk) {
@@ -143,7 +145,7 @@ public class CustomFlatChunkGenerator extends ChunkGenerator {
         }
         for (int i = Math.min(this.config.getLayerCount(), world.getHeight()); i >= 0; i--) {
             BlockState blockState = this.config.getChunkGeneratorSettings().defaultBlock();
-            if (blockState != null && heightmap.isOpaque().test(blockState)) {
+            if (heightmap.isOpaque().test(blockState)) {
                 return world.getMinY() + i;
             }
         }
@@ -165,12 +167,10 @@ public class CustomFlatChunkGenerator extends ChunkGenerator {
     }
 
     @Override
-    public void applyCarvers(WorldGenRegion chunkRegion, long seed, RandomState randomState, net.minecraft.world.level.biome.BiomeManager biomeManager, StructureManager structureManager, ChunkAccess chunk) {
-    }
+    public void applyCarvers(WorldGenRegion chunkRegion, long seed, RandomState randomState, BiomeManager biomeManager, StructureManager structureManager, ChunkAccess chunk) {}
 
     @Override
-    public void addDebugScreenInfo(List<String> text, RandomState randomState, BlockPos pos) {
-    }
+    public void addDebugScreenInfo(List<String> text, RandomState randomState, BlockPos pos) {}
 
     @Override
     public int getMinY() {

@@ -17,24 +17,23 @@ public abstract class SurfaceSystemMixin implements FlatSurfaceBuilder {
     @Unique private boolean isFlat = false;
     /*
      * This two redirects are used to prevent the vanilla SurfaceSystem from placing
-     *  badlands pillars and icebergs in custom flat worlds.
+     * badlands pillars and icebergs in custom flat worlds.
      */
-
     @Redirect(method = "buildSurface", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/levelgen/SurfaceSystem;erodedBadlandsExtension(Lnet/minecraft/world/level/chunk/BlockColumn;IIILnet/minecraft/world/level/LevelHeightAccessor;)V"))
     private void redirect$placeBadlandsPillar(SurfaceSystem instance, BlockColumn column, int blockX, int blockZ, int height, LevelHeightAccessor protoChunk) {
-        if (!((FlatSurfaceBuilder)this).mixin$isFlat()) this.erodedBadlandsExtension(column, blockX, blockZ, height, protoChunk);
+        if (!this.mixin$isFlat()) this.erodedBadlandsExtension(column, blockX, blockZ, height, protoChunk);
     }
 
     @Shadow
     protected abstract void erodedBadlandsExtension(BlockColumn column, int blockX, int blockZ, int height, LevelHeightAccessor protoChunk);
 
     @Redirect(method = "buildSurface", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/levelgen/SurfaceSystem;frozenOceanExtension(ILnet/minecraft/world/level/biome/Biome;Lnet/minecraft/world/level/chunk/BlockColumn;Lnet/minecraft/core/BlockPos$MutableBlockPos;III)V"))
-    private void redirect$placeIceberg(SurfaceSystem instance, int minSurfaceLevel, Biome biome, BlockColumn column, BlockPos.MutableBlockPos mutablePos, int x, int z, int surfaceY) {
-        if (!((FlatSurfaceBuilder)this).mixin$isFlat()) this.frozenOceanExtension(minSurfaceLevel, biome, column, mutablePos, x, z, surfaceY);
+    private void redirect$placeIceberg(SurfaceSystem instance, int minSurfaceLevel, Biome surfaceBiome, BlockColumn column, BlockPos.MutableBlockPos blockPos, int blockX, int blockZ, int height) {
+        if (!this.mixin$isFlat()) this.frozenOceanExtension(minSurfaceLevel, surfaceBiome, column, blockPos, blockX, blockZ, height);
     }
 
     @Shadow
-    protected abstract void frozenOceanExtension(int minSurfaceLevel, Biome biome, BlockColumn column, BlockPos.MutableBlockPos mutablePos, int x, int z, int surfaceY);
+    protected abstract void frozenOceanExtension(int minSurfaceLevel, Biome surfaceBiome, BlockColumn column, BlockPos.MutableBlockPos blockPos, int blockX, int blockZ, int height);
 
     @Override
     public boolean mixin$isFlat() {

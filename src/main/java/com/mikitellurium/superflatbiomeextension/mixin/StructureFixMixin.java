@@ -7,6 +7,7 @@ import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.Structure;
+import net.minecraft.world.level.levelgen.structure.StructurePiece;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePiecesBuilder;
 import net.minecraft.world.level.levelgen.structure.structures.OceanMonumentPieces;
 import net.minecraft.world.level.levelgen.structure.structures.OceanMonumentStructure;
@@ -27,13 +28,13 @@ public class StructureFixMixin {
         private void generatePieces(StructurePiecesBuilder builder, Structure.GenerationContext context, BlockPos startPos, Rotation rotation) {
         }
         /*
-         * Mansions don't generate if their y coordinate is lower than 60, this allow mansions to
+         * Mansions don't generate if their y coordinate is lower than 60, this allows mansions to
          * generate at any height if the world is custom flat.
          */
         @Inject(method = "findGenerationPoint", at = @At(value = "INVOKE", target = "Lnet/minecraft/core/BlockPos;getY()I"), cancellable = true)
-        private void inject$returnPositionIfFlat(Structure.GenerationContext context, CallbackInfoReturnable<Optional<Structure.GenerationStub>> cir, @Local Rotation rotation, @Local BlockPos pos) {
+        private void inject$returnPositionIfFlat(Structure.GenerationContext context, CallbackInfoReturnable<Optional<Structure.GenerationStub>> cir, @Local(name = "rotation") Rotation rotation, @Local(name = "startPos") BlockPos startPos) {
             if (context.chunkGenerator() instanceof CustomFlatChunkGenerator) {
-                cir.setReturnValue(Optional.of(new Structure.GenerationStub(pos, (builder) -> this.generatePieces(builder, context, pos, rotation))));
+                cir.setReturnValue(Optional.of(new Structure.GenerationStub(startPos, (builder) -> this.generatePieces(builder, context, startPos, rotation))));
             }
         }
     }
@@ -52,7 +53,7 @@ public class StructureFixMixin {
                 int maxAllowedShift = chunkGenerator.getMinY() - boundingBox.minY() + 2;
                 int shift = Math.max(chunkGenerator.getSeaLevel() - boundingBox.maxY(), maxAllowedShift);
                 base.getBoundingBox().move(0, shift, 0);
-                for (net.minecraft.world.level.levelgen.structure.StructurePiece piece : ((StructureAccessors.OceanMonumentBase)base).getChildPieces()) {
+                for (StructurePiece piece : ((StructureAccessors.OceanMonumentBase)base).getChildPieces()) {
                     piece.getBoundingBox().move(0, shift, 0);
                 }
             }

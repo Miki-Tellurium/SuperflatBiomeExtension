@@ -15,11 +15,7 @@ import net.minecraft.world.level.levelgen.Beardifier;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunctions;
 import net.minecraft.world.level.levelgen.RandomState;
-import net.minecraft.world.level.levelgen.structure.TerrainAdjustment;
-import net.minecraft.world.level.levelgen.structure.BoundingBox;
-import net.minecraft.world.level.levelgen.structure.PoolElementStructurePiece;
-import net.minecraft.world.level.levelgen.structure.StructurePiece;
-import net.minecraft.world.level.levelgen.structure.StructureStart;
+import net.minecraft.world.level.levelgen.structure.*;
 import net.minecraft.world.level.levelgen.structure.pools.JigsawJunction;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
 import net.minecraft.world.level.levelgen.structure.structures.JigsawStructure;
@@ -29,15 +25,14 @@ import java.util.List;
 import java.util.function.Function;
 
 public class FlatStructureBerdifier implements DensityFunctions.BeardifierOrMarker, DensityFunction.FunctionContext {
-    private static final Identifier WORLDGEN_REGION_RANDOM = FastId.ofMc("worldgen_region_random");
+    private static final Identifier WORLD_GEN_REGION_RANDOM = FastId.ofMc("world_gen_region_random");
     private final ChunkPos chunkPos;
     private final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
     private final Beardifier beardifier;
     private final double threshold;
 
-    public static FlatStructureBerdifier create(ChunkPos chunkPos, StructureManager structureManager, RandomState randomState,
-                                                 Function<RandomSource, Double> thresholdFunction) {
-        RandomSource random = randomState.getOrCreateRandomFactory(WORLDGEN_REGION_RANDOM).at(chunkPos.getWorldPosition());
+    public static FlatStructureBerdifier create(ChunkPos chunkPos, StructureManager structureManager, RandomState randomState, Function<RandomSource, Double> thresholdFunction) {
+        RandomSource random = randomState.getOrCreateRandomFactory(WORLD_GEN_REGION_RANDOM).at(chunkPos.getWorldPosition());
         return new FlatStructureBerdifier(chunkPos, createWeightSampler(structureManager, chunkPos), thresholdFunction.apply(random));
     }
 
@@ -47,22 +42,21 @@ public class FlatStructureBerdifier implements DensityFunctions.BeardifierOrMark
         ObjectList<Beardifier.Rigid> pieceList = new ObjectArrayList<>(10);
         ObjectList<JigsawJunction> junctionList = new ObjectArrayList<>(32);
         BoundingBox anyPieceBoundingBox = null;
-        for (StructureStart start : structureManager.startsForStructure(pos, (structure) -> {
+        List<StructureStart> structureStarts = structureManager.startsForStructure(pos, (structure) -> {
             if (structure instanceof JigsawStructure) {
                 String jigsawName = ((StructureAccessors.Jigsaw)structure).getStartJigsawName().map(Identifier::getPath).orElse(StringUtils.EMPTY);
                 return structure.terrainAdaptation() != TerrainAdjustment.NONE && jigsawName.equals("city_anchor");
             }
             return false;
-        })) {
+        });
+        for (StructureStart start : structureStarts) {
             TerrainAdjustment structureTerrainAdaptation = start.getStructure().terrainAdaptation();
             for (StructurePiece structurePiece : start.getPieces()) {
                 if (structurePiece.isCloseToChunk(pos, 12)) {
                     if (structurePiece instanceof PoolElementStructurePiece poolStructurePiece) {
                         StructureTemplatePool.Projection projection = poolStructurePiece.getElement().getProjection();
                         if (projection == StructureTemplatePool.Projection.RIGID) {
-                            pieceList.add(
-                                    new Beardifier.Rigid(poolStructurePiece.getBoundingBox(), structureTerrainAdaptation, poolStructurePiece.getGroundLevelDelta())
-                            );
+                            pieceList.add(new Beardifier.Rigid(poolStructurePiece.getBoundingBox(), structureTerrainAdaptation, poolStructurePiece.getGroundLevelDelta()));
                             anyPieceBoundingBox = includeBoundingBox(anyPieceBoundingBox, poolStructurePiece.getBoundingBox());
                         }
 
@@ -81,9 +75,7 @@ public class FlatStructureBerdifier implements DensityFunctions.BeardifierOrMark
                 }
             }
         }
-        if (anyPieceBoundingBox == null) {
-            return Beardifier.EMPTY;
-        }
+        if (anyPieceBoundingBox == null) return Beardifier.EMPTY;
         BoundingBox affectedBox = anyPieceBoundingBox.inflatedBy(24);
         return new Beardifier(List.copyOf(pieceList), List.copyOf(junctionList), affectedBox);
     }

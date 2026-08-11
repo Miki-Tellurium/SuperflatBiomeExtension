@@ -13,8 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(WorldDimensions.class)
 public class WorldDimensionsMixin {
     /*
-     * Vanilla renders the darker sky at low y values unless the special property is flat,
-     * this set the world special property to flat to avoid that.
+     * Vanilla renders the sky darker at low y values unless the special property is flat
      */
     @SuppressWarnings("deprecation")
     @Inject(method = "specialWorldProperty", at = @At(value = "RETURN"), cancellable = true)

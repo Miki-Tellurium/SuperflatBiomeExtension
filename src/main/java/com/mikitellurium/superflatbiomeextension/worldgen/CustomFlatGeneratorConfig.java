@@ -1,21 +1,24 @@
 package com.mikitellurium.superflatbiomeextension.worldgen;
 
 import com.google.common.base.Suppliers;
-import com.mikitellurium.superflatbiomeextension.registry.GenerationShapeConfigRegistry;
+import com.mikitellurium.superflatbiomeextension.registry.NoiseSettingsRegistry;
 import com.mikitellurium.superflatbiomeextension.worldgen.biome.ModSurfaceRules;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderGetter;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeGenerationSettings;
 import net.minecraft.world.level.biome.Climate;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunctions;
 import net.minecraft.world.level.levelgen.GenerationStep;
@@ -24,7 +27,6 @@ import net.minecraft.world.level.levelgen.NoiseRouter;
 import net.minecraft.world.level.levelgen.NoiseRouterData;
 import net.minecraft.world.level.levelgen.NoiseSettings;
 import net.minecraft.world.level.levelgen.Noises;
-import net.minecraft.world.level.levelgen.SurfaceRules;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
 
@@ -36,7 +38,7 @@ import java.util.function.Supplier;
 public class CustomFlatGeneratorConfig {
     public static final MapCodec<CustomFlatGeneratorConfig> CODEC = RecordCodecBuilder.mapCodec(
             (instance) -> instance.group(
-                    GenerationShapeConfigRegistry.CODEC.optionalFieldOf("shape_config", GenerationShapeConfigRegistry.SURFACE).forGetter((config) -> config.shapeConfig),
+                    NoiseSettingsRegistry.CODEC.optionalFieldOf("noise_settings", NoiseSettingsRegistry.SURFACE).forGetter((config) -> config.shapeConfig),
                     Codec.INT.fieldOf("layer_count").forGetter((config) -> config.layerCount),
                     Codec.BOOL.fieldOf("generate_water").forGetter((config) -> config.generateWater),
                     Codec.BOOL.fieldOf("has_features").forGetter((config) -> config.hasFeatures),
@@ -81,15 +83,15 @@ public class CustomFlatGeneratorConfig {
         this.settings = Suppliers.memoize(this::createSettings);
     }
 
-    public record FlatLayer(net.minecraft.core.Holder<net.minecraft.world.level.block.Block> block, int height) {
+    public record FlatLayer(Holder<Block> block, int height) {
         public static final Codec<FlatLayer> CODEC = RecordCodecBuilder.create(
                 (instance) -> instance.group(
-                        net.minecraft.core.registries.BuiltInRegistries.BLOCK.holderByNameCodec().fieldOf("block").forGetter(FlatLayer::block),
-                        Codec.intRange(0, net.minecraft.world.level.dimension.DimensionType.Y_SIZE).fieldOf("height").forGetter(FlatLayer::height)
+                        BuiltInRegistries.BLOCK.holderByNameCodec().fieldOf("block").forGetter(FlatLayer::block),
+                        Codec.intRange(0, DimensionType.Y_SIZE).fieldOf("height").forGetter(FlatLayer::height)
                 ).apply(instance, FlatLayer::new)
         );
 
-        public net.minecraft.world.level.block.state.BlockState blockState() {
+        public BlockState blockState() {
             return this.block.value().defaultBlockState();
         }
     }
@@ -101,7 +103,7 @@ public class CustomFlatGeneratorConfig {
     public BiomeGenerationSettings createGenerationSettings(Holder<Biome> biomeEntry) {
         BiomeGenerationSettings.PlainBuilder builder = new BiomeGenerationSettings.PlainBuilder();
         BiomeGenerationSettings biomeGenerationSettings = biomeEntry.value().getGenerationSettings();
-        List<net.minecraft.core.HolderSet<PlacedFeature>> list = biomeGenerationSettings.features();
+        List<HolderSet<PlacedFeature>> list = biomeGenerationSettings.features();
         for (int i = 0; i < list.size(); i++) {
             if ((this.hasFeatures() && !featureChecks.containsKey(i))
                     || (this.featureChecks.containsKey(i) && this.featureChecks.get(i).test(i)))
@@ -112,6 +114,7 @@ public class CustomFlatGeneratorConfig {
         return builder.build();
     }
 
+    // Create settings dynamically
     private NoiseGeneratorSettings createSettings() {
         int surfaceY = shapeConfig.minY() + getTotalHeight();
         return new NoiseGeneratorSettings(
@@ -252,10 +255,9 @@ public class CustomFlatGeneratorConfig {
         }
     }
 
-    @SuppressWarnings("DataFlowIssue")
-    public static CustomFlatGeneratorConfig createDefault(net.minecraft.core.HolderGetter.Provider holderLookup) {
+    public static CustomFlatGeneratorConfig createDefault(HolderGetter.Provider holderLookup) {
         return new CustomFlatGeneratorConfig(
-                GenerationShapeConfigRegistry.SURFACE,
+                NoiseSettingsRegistry.SURFACE,
                 64,
                 true,
                 true,

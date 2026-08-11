@@ -22,7 +22,7 @@ public class PlacedFeatureFixMixin {
          * Make geodes pierce the surface less often.
          */
         @Inject(method = "place", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;isAir()Z"), cancellable = true)
-        private void inject$fixGenerateHeight(FeaturePlaceContext<GeodeConfiguration> context, CallbackInfoReturnable<Boolean> cir, @Local(ordinal = 1) BlockPos pos) {
+        private void inject$fixGenerateHeight(FeaturePlaceContext<GeodeConfiguration> context, CallbackInfoReturnable<Boolean> cir, @Local(name = "pos") BlockPos pos) {
             if (context.chunkGenerator() instanceof CustomFlatChunkGenerator flatGenerator) {
                 if (pos.getY() > flatGenerator.getSeaLevel() - 7) {
                     cir.setReturnValue(false);
@@ -37,7 +37,7 @@ public class PlacedFeatureFixMixin {
          * This return 51 to allow ice spikes to generate the pillar in flat worlds where the sea level is below 50.
          */
         @WrapOperation(method = "place", at = @At(value = "INVOKE", target = "Lnet/minecraft/core/BlockPos;getY()I", ordinal = 1))
-        private int inject$fixPillarPlacement(BlockPos blockPos, Operation<Integer> original, @Local(argsOnly = true) FeaturePlaceContext<SpikeConfiguration> context) {
+        private int inject$fixPillarPlacement(BlockPos blockPos, Operation<Integer> original, @Local(argsOnly = true, name = "context") FeaturePlaceContext<SpikeConfiguration> context) {
             if (context.chunkGenerator() instanceof CustomFlatChunkGenerator flatGenerator) {
                 if (blockPos.getY() >= flatGenerator.getSeaLevel()) {
                     return original.call(new BlockPos(0, 51, 0));
