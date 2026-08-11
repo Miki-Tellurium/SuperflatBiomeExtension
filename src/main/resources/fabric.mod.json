@@ -12,7 +12,8 @@
 	],
 	"contact": {
 		"homepage": "https://modrinth.com/mod/superflat-biome-extension",
-		"sources": "https://github.com/Miki-Tellurium/SuperflatBiomeExtension"
+		"sources": "https://github.com/Miki-Tellurium/SuperflatBiomeExtension",
+		"issues": "https://github.com/Miki-Tellurium/SuperflatBiomeExtension/issues"
 	},
 	"license": "MIT License",
 	"icon": "assets/superflatbiomextension_logo.png",
