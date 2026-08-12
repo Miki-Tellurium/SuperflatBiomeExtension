@@ -3,17 +3,20 @@ package com.mikitellurium.superflatbiomeextension.mixin;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mikitellurium.superflatbiomeextension.worldgen.CustomFlatChunkGenerator;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructurePiece;
+import net.minecraft.world.level.levelgen.structure.pieces.PiecesContainer;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePiecesBuilder;
 import net.minecraft.world.level.levelgen.structure.structures.OceanMonumentPieces;
 import net.minecraft.world.level.levelgen.structure.structures.OceanMonumentStructure;
 import net.minecraft.world.level.levelgen.structure.structures.WoodlandMansionStructure;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -48,14 +51,29 @@ public class StructureFixMixin {
         private static void inject$shiftStructure(StructurePiecesBuilder builder, Structure.GenerationContext context, CallbackInfo ci) {
             ChunkGenerator chunkGenerator = context.chunkGenerator();
             if (chunkGenerator instanceof CustomFlatChunkGenerator) {
-                OceanMonumentPieces.MonumentBuilding base = (OceanMonumentPieces.MonumentBuilding) builder.build().pieces().getFirst();
+                StructurePiece base = builder.build().pieces().getFirst();
                 BoundingBox boundingBox = base.getBoundingBox();
-                int maxAllowedShift = chunkGenerator.getMinY() - boundingBox.minY() + 2;
+                int maxAllowedShift = chunkGenerator.getMinY() - boundingBox.minY() + 1; // +1 avoids the monument base being overridden by bedrock if monument generate at bedrock level
                 int shift = Math.max(chunkGenerator.getSeaLevel() - boundingBox.maxY(), maxAllowedShift);
-                base.getBoundingBox().move(0, shift, 0);
-                for (StructurePiece piece : ((StructureAccessors.OceanMonumentBase)base).getChildPieces()) {
-                    piece.getBoundingBox().move(0, shift, 0);
-                }
+                shiftMonument(base, shift);
+            }
+        }
+        /*
+         * regeneratePiecesAfterLoad() restores the old bounding box but resets the y coordinate value,
+         * so it needs to be shifted again
+         */
+        @Inject(method = "regeneratePiecesAfterLoad", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/levelgen/structure/pieces/StructurePiecesBuilder;<init>()V"))
+        private static void inject$restoreBoundingBox(ChunkPos chunkPos, long seed, PiecesContainer savedPieces, CallbackInfoReturnable<PiecesContainer> cir, @Local(name = "oldBoundingBox") BoundingBox oldBoundingBox,  @Local(name = "topPiece") StructurePiece topPiece) {
+            BoundingBox box = topPiece.getBoundingBox();
+            int shift = oldBoundingBox.minY() - box.minY();
+            shiftMonument(topPiece, shift);
+        }
+
+        @Unique
+        private static void shiftMonument(StructurePiece base, int shift) {
+            base.move(0, shift, 0);
+            for (StructurePiece piece : ((StructureAccessors.OceanMonumentBase)base).getChildPieces()) {
+                piece.move(0, shift, 0);
             }
         }
     }
