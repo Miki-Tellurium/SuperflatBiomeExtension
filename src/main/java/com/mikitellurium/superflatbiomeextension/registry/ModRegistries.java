@@ -4,5 +4,6 @@ public class ModRegistries {
     public static void register() {
         NoiseSettingsRegistry.init();
         ModChunkGenerators.register();
+        ModMultiNoiseBiomeSourceParameterLists.register();
     }
 }
