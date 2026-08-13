@@ -164,9 +164,9 @@ public class EditCustomFlatLevelScreen extends Screen {
         }
 
         public CustomFlatGeneratorConfig getConfig() {
-            var newConfig = new CustomFlatGeneratorConfig(config.getGenerationShapeConfig(), config.getLayerCount(),
+            var newConfig = new CustomFlatGeneratorConfig(config.getGenerationShapeConfig(), config.getLayers(),
                     settings[0], settings[1], settings[2], settings[3], settings[4],
-                    config.getLayers(), config.getBiomes(), config.getDensityFunctions(), config.getNoises()
+                    config.getBiomes(), config.getDensityFunctions(), config.getNoises()
             );
             newConfig.setReduceUndergroundBiomes(settings[5]);
             return newConfig;

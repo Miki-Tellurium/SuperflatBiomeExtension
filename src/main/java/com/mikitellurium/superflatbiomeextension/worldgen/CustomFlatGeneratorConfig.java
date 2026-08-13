@@ -39,35 +39,33 @@ public class CustomFlatGeneratorConfig {
     public static final MapCodec<CustomFlatGeneratorConfig> CODEC = RecordCodecBuilder.mapCodec(
             (instance) -> instance.group(
                     NoiseSettingsRegistry.CODEC.optionalFieldOf("noise_settings", NoiseSettingsRegistry.SURFACE).forGetter((config) -> config.shapeConfig),
-                    Codec.INT.fieldOf("layer_count").forGetter((config) -> config.layerCount),
+                    FlatLayer.CODEC.listOf().optionalFieldOf("layers", createDefaultLayers()).forGetter((config) -> config.layers),
                     Codec.BOOL.fieldOf("generate_water").forGetter((config) -> config.generateWater),
                     Codec.BOOL.fieldOf("has_features").forGetter((config) -> config.hasFeatures),
                     Codec.BOOL.fieldOf("has_structures").forGetter(CustomFlatGeneratorConfig::hasStructures),
                     Codec.BOOL.fieldOf("has_lava_lakes").forGetter(CustomFlatGeneratorConfig::hasLakes),
                     Codec.BOOL.fieldOf("generate_ores").forGetter(CustomFlatGeneratorConfig::generateOres),
-                    FlatLayer.CODEC.listOf().optionalFieldOf("layers", List.of()).forGetter((config) -> config.layers),
                     RegistryOps.retrieveGetter(Registries.BIOME),
                     RegistryOps.retrieveGetter(Registries.DENSITY_FUNCTION),
                     RegistryOps.retrieveGetter(Registries.NOISE)
             ).apply(instance, CustomFlatGeneratorConfig::new)
     );
     private final NoiseSettings shapeConfig;
-    private final int layerCount;
+    private final List<FlatLayer> layers;
     private final boolean generateWater;
     private final boolean hasFeatures;
     private final Map<Integer, FeatureStepCheck> featureChecks;
-    private final List<FlatLayer> layers;
     private final HolderGetter<Biome> biomes;
     private final HolderGetter<DensityFunction> densityFunctions;
     private final HolderGetter<NormalNoise.NoiseParameters> noises;
     private final Supplier<NoiseGeneratorSettings> settings;
     private boolean reduceUndergroundBiomes;
 
-    public CustomFlatGeneratorConfig(NoiseSettings shapeConfig, int layerCount, boolean generateWater, boolean hasFeatures, boolean hasStructures, boolean hasLakes, boolean generateOres, List<FlatLayer> layers,
+    public CustomFlatGeneratorConfig(NoiseSettings shapeConfig, List<FlatLayer> layers, boolean generateWater, boolean hasFeatures, boolean hasStructures, boolean hasLakes, boolean generateOres,
                                      HolderGetter<Biome> biomes, HolderGetter<DensityFunction> densityFunctions, HolderGetter<NormalNoise.NoiseParameters> noises) {
-        validateLayerCount(layerCount);
         this.shapeConfig = shapeConfig;
-        this.layerCount = layerCount;
+        this.layers = layers;
+        validateLayerCount(this.getLayerAmount());
         this.generateWater = generateWater;
         this.hasFeatures = hasFeatures;
         this.featureChecks = Map.of(
@@ -77,23 +75,10 @@ public class CustomFlatGeneratorConfig {
                 GenerationStep.Decoration.SURFACE_STRUCTURES.ordinal(), new FeatureStepCheck(hasStructures, GenerationStep.Decoration.SURFACE_STRUCTURES),
                 GenerationStep.Decoration.STRONGHOLDS.ordinal(), new FeatureStepCheck(hasStructures, GenerationStep.Decoration.STRONGHOLDS)
         );
-        this.layers = layers;
         this.biomes = biomes;
         this.densityFunctions = densityFunctions;
         this.noises = noises;
         this.settings = Suppliers.memoize(this::createSettings);
-    }
-
-    public record FlatLayer(Holder<Block> block, int height) {
-        public static final Codec<FlatLayer> CODEC = RecordCodecBuilder.create((instance) -> instance.group(
-                        BuiltInRegistries.BLOCK.holderByNameCodec().fieldOf("block").forGetter(FlatLayer::block),
-                        Codec.intRange(0, DimensionType.Y_SIZE).fieldOf("height").forGetter(FlatLayer::height)
-                ).apply(instance, FlatLayer::new)
-        );
-
-        public BlockState blockState() {
-            return this.block.value().defaultBlockState();
-        }
     }
 
     public NoiseGeneratorSettings getChunkGeneratorSettings() {
@@ -116,7 +101,7 @@ public class CustomFlatGeneratorConfig {
 
     // Create settings dynamically
     private NoiseGeneratorSettings createSettings() {
-        int surfaceY = shapeConfig.minY() + getTotalHeight();
+        int surfaceY = shapeConfig.minY() + getLayerAmount();
         return new NoiseGeneratorSettings(
                 this.shapeConfig,
                 Blocks.STONE.defaultBlockState(),
@@ -186,33 +171,12 @@ public class CustomFlatGeneratorConfig {
         return this.shapeConfig;
     }
 
-    public int getLayerCount() {
-        return this.layerCount;
-    }
-
     public List<FlatLayer> getLayers() {
         return this.layers;
     }
 
-    public boolean hasCustomLayers() {
-        return !this.layers.isEmpty();
-    }
-
-    public List<FlatLayer> getResolvedLayers() {
-        if (this.hasCustomLayers()) {
-            return this.layers;
-        }
-        return List.of(
-                new FlatLayer(BuiltInRegistries.BLOCK.wrapAsHolder(Blocks.BEDROCK), 1),
-                new FlatLayer(BuiltInRegistries.BLOCK.wrapAsHolder(Blocks.STONE), this.layerCount - 1)
-        );
-    }
-
-    public int getTotalHeight() {
-        if (this.hasCustomLayers()) {
-            return this.layers.stream().mapToInt(FlatLayer::height).sum();
-        }
-        return this.layerCount;
+    public int getLayerAmount() {
+        return this.layers.stream().mapToInt(FlatLayer::height).sum();
     }
 
     public HolderGetter<Biome> getBiomes() {
@@ -266,17 +230,36 @@ public class CustomFlatGeneratorConfig {
     public static CustomFlatGeneratorConfig createDefault(HolderGetter.Provider holderLookup) {
         return new CustomFlatGeneratorConfig(
                 NoiseSettingsRegistry.SURFACE,
-                64,
+                createDefaultLayers(),
                 true,
                 true,
                 true,
                 false,
                 false,
-                List.of(),
                 holderLookup.lookupOrThrow(Registries.BIOME),
                 holderLookup.lookupOrThrow(Registries.DENSITY_FUNCTION),
                 holderLookup.lookupOrThrow(Registries.NOISE)
         );
+    }
+
+    private static List<FlatLayer> createDefaultLayers() {
+        return List.of(
+                new FlatLayer(BuiltInRegistries.BLOCK.wrapAsHolder(Blocks.BEDROCK), 1),
+                new FlatLayer(BuiltInRegistries.BLOCK.wrapAsHolder(Blocks.DEEPSLATE), 31),
+                new FlatLayer(BuiltInRegistries.BLOCK.wrapAsHolder(Blocks.STONE), 32)
+        );
+    }
+
+    public record FlatLayer(Holder<Block> block, int height) {
+        public static final Codec<FlatLayer> CODEC = RecordCodecBuilder.create((instance) -> instance.group(
+                        BuiltInRegistries.BLOCK.holderByNameCodec().fieldOf("block").forGetter(FlatLayer::block),
+                        Codec.intRange(0, DimensionType.Y_SIZE).fieldOf("height").forGetter(FlatLayer::height)
+                ).apply(instance, FlatLayer::new)
+        );
+
+        public BlockState blockState() {
+            return this.block.value().defaultBlockState();
+        }
     }
 
     private record FeatureStepCheck(boolean isEnabled, GenerationStep.Decoration featureStep) implements Predicate<Integer> {

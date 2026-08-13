@@ -10,7 +10,6 @@
         },
         "config": {
           "shape_config" : "minecraft:surface",
-          "layer_count": 64,
           "generate_water": true,
           "has_features": true,
           "has_structures": true,

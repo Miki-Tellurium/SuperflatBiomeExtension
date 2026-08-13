@@ -102,7 +102,7 @@ public class CustomFlatChunkGenerator extends ChunkGenerator {
 
     @Override
     public int getSpawnHeight(LevelHeightAccessor world) {
-        return world.getMinY() + Math.min(world.getHeight(), this.config.getTotalHeight());
+        return world.getMinY() + Math.min(world.getHeight(), this.config.getLayerAmount());
     }
 
     @Override
@@ -112,7 +112,7 @@ public class CustomFlatChunkGenerator extends ChunkGenerator {
     public CompletableFuture<ChunkAccess> fillFromNoise(Blender blender, RandomState randomState, StructureManager structureManager, ChunkAccess chunk) {
         Heightmap heightmap = chunk.getOrCreateHeightmapUnprimed(Heightmap.Types.OCEAN_FLOOR_WG);
         Heightmap heightmap2 = chunk.getOrCreateHeightmapUnprimed(Heightmap.Types.WORLD_SURFACE_WG);
-        List<CustomFlatGeneratorConfig.FlatLayer> layers = config.getResolvedLayers();
+        List<CustomFlatGeneratorConfig.FlatLayer> layers = config.getLayers();
         FlatStructureBerdifier berdifier = FlatStructureBerdifier.create(chunk.getPos(), structureManager, randomState,
                 (random) -> -0.1 + random.nextDouble() * 0.01);
 
@@ -140,10 +140,7 @@ public class CustomFlatChunkGenerator extends ChunkGenerator {
 
     @Override
     public int getBaseHeight(int x, int z, Heightmap.Types heightmap, LevelHeightAccessor world, RandomState randomState) {
-        if (config.hasCustomLayers()) {
-            return world.getMinY() + config.getTotalHeight();
-        }
-        for (int i = Math.min(this.config.getLayerCount(), world.getHeight()); i >= 0; i--) {
+        for (int i = Math.min(this.config.getLayerAmount(), world.getHeight()); i >= 0; i--) {
             BlockState blockState = this.config.getChunkGeneratorSettings().defaultBlock();
             if (heightmap.isOpaque().test(blockState)) {
                 return world.getMinY() + i;
@@ -154,8 +151,8 @@ public class CustomFlatChunkGenerator extends ChunkGenerator {
 
     @Override
     public NoiseColumn getBaseColumn(int x, int z, LevelHeightAccessor world, RandomState randomState) {
-        List<CustomFlatGeneratorConfig.FlatLayer> resolvedLayers = this.config.getResolvedLayers();
-        int totalHeight = this.config.getTotalHeight();
+        List<CustomFlatGeneratorConfig.FlatLayer> resolvedLayers = this.config.getLayers();
+        int totalHeight = this.config.getLayerAmount();
         BlockState[] blockStates = new BlockState[totalHeight];
         int yIndex = 0;
         for (CustomFlatGeneratorConfig.FlatLayer layer : resolvedLayers) {
