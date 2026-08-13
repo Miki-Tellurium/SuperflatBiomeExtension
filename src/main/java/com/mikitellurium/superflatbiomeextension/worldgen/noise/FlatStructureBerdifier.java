@@ -5,7 +5,11 @@ import com.mikitellurium.superflatbiomeextension.util.FastId;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.data.worldgen.Structures;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.StructureManager;
@@ -22,6 +26,7 @@ import net.minecraft.world.level.levelgen.structure.structures.JigsawStructure;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 public class FlatStructureBerdifier implements DensityFunctions.BeardifierOrMarker, DensityFunction.FunctionContext {
@@ -37,17 +42,15 @@ public class FlatStructureBerdifier implements DensityFunctions.BeardifierOrMark
     }
 
     public static Beardifier createWeightSampler(StructureManager structureManager, ChunkPos pos) {
+        Registry<Structure> registry = structureManager.registryAccess().lookupOrThrow(Registries.STRUCTURE);
         int i = pos.getMinBlockX();
         int j = pos.getMinBlockZ();
         ObjectList<Beardifier.Rigid> pieceList = new ObjectArrayList<>(10);
         ObjectList<JigsawJunction> junctionList = new ObjectArrayList<>(32);
         BoundingBox anyPieceBoundingBox = null;
         List<StructureStart> structureStarts = structureManager.startsForStructure(pos, (structure) -> {
-            if (structure instanceof JigsawStructure) {
-                String jigsawName = ((StructureAccessors.Jigsaw)structure).getStartJigsawName().map(Identifier::getPath).orElse(StringUtils.EMPTY);
-                return structure.terrainAdaptation() != TerrainAdjustment.NONE && jigsawName.equals("city_anchor");
-            }
-            return false;
+            Optional<Identifier> key = Optional.ofNullable(registry.getKey(structure));
+            return key.isPresent() && key.get() == BuiltinStructures.ANCIENT_CITY.identifier() && structure.terrainAdaptation() != TerrainAdjustment.NONE;
         });
         for (StructureStart start : structureStarts) {
             TerrainAdjustment structureTerrainAdaptation = start.getStructure().terrainAdaptation();
