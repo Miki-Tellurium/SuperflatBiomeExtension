@@ -268,7 +268,7 @@ public class CustomFlatGeneratorConfig {
     public record FlatLayer(Holder<Block> block, int height) {
         public static final Codec<FlatLayer> CODEC = RecordCodecBuilder.create((instance) -> instance.group(
                         BuiltInRegistries.BLOCK.holderByNameCodec().fieldOf("block").forGetter(FlatLayer::block),
-                        Codec.intRange(0, DimensionType.Y_SIZE).fieldOf("height").forGetter(FlatLayer::height)
+                        Codec.intRange(1, DimensionType.Y_SIZE).fieldOf("height").forGetter(FlatLayer::height)
                 ).apply(instance, FlatLayer::new)
         );
 
