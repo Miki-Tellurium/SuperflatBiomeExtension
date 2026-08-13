@@ -61,6 +61,7 @@ public class CustomFlatGeneratorConfig {
     private final HolderGetter<DensityFunction> densityFunctions;
     private final HolderGetter<NormalNoise.NoiseParameters> noises;
     private final Supplier<NoiseGeneratorSettings> settings;
+    private boolean reduceUndergroundBiomes;
 
     public CustomFlatGeneratorConfig(NoiseSettings shapeConfig, int layerCount, boolean generateWater, boolean hasFeatures, boolean hasStructures, boolean hasLakes, boolean generateOres, List<FlatLayer> layers,
                                      HolderGetter<Biome> biomes, HolderGetter<DensityFunction> densityFunctions, HolderGetter<NormalNoise.NoiseParameters> noises) {
@@ -84,8 +85,7 @@ public class CustomFlatGeneratorConfig {
     }
 
     public record FlatLayer(Holder<Block> block, int height) {
-        public static final Codec<FlatLayer> CODEC = RecordCodecBuilder.create(
-                (instance) -> instance.group(
+        public static final Codec<FlatLayer> CODEC = RecordCodecBuilder.create((instance) -> instance.group(
                         BuiltInRegistries.BLOCK.holderByNameCodec().fieldOf("block").forGetter(FlatLayer::block),
                         Codec.intRange(0, DimensionType.Y_SIZE).fieldOf("height").forGetter(FlatLayer::height)
                 ).apply(instance, FlatLayer::new)
@@ -247,6 +247,14 @@ public class CustomFlatGeneratorConfig {
         return featureChecks.get(GenerationStep.Decoration.UNDERGROUND_STRUCTURES.ordinal()).isEnabled() ||
                 featureChecks.get(GenerationStep.Decoration.SURFACE_STRUCTURES.ordinal()).isEnabled() ||
                 featureChecks.get(GenerationStep.Decoration.STRONGHOLDS.ordinal()).isEnabled();
+    }
+
+    public boolean reduceUndergroundBiomes() {
+        return reduceUndergroundBiomes;
+    }
+
+    public void setReduceUndergroundBiomes(boolean reduceUndergroundBiomes) {
+        this.reduceUndergroundBiomes = reduceUndergroundBiomes;
     }
 
     private static void validateLayerCount(int layerCount) {

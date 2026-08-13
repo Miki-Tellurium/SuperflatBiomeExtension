@@ -100,6 +100,12 @@ public class EditCustomFlatLevelScreen extends Screen {
                     Tooltip.create(Component.translatable("createWorld.superflatbiomeextension.customize.flat.tooltip.generate_ores")),
                     (button, newValue) -> config.settings[4] = newValue
             ));
+            this.addEntry(new SettingWidget<>(
+                    Component.translatable("createWorld.superflatbiomeextension.customize.flat.reduce_underground_biomes"),
+                    CycleButton.onOffBuilder(config.settings[5]).displayOnlyValue(),
+                    Tooltip.create(Component.translatable("createWorld.superflatbiomeextension.customize.flat.tooltip.reduce_underground_biomes")),
+                    (button, newValue) -> config.settings[5] = newValue
+            ));
         }
     }
 
@@ -145,7 +151,7 @@ public class EditCustomFlatLevelScreen extends Screen {
 
     private static class ConfigStorage {
         private final CustomFlatGeneratorConfig config;
-        private final boolean[] settings = new boolean[5];
+        private final boolean[] settings = new boolean[6];
 
         ConfigStorage(CustomFlatGeneratorConfig config) {
             this.config = config;
@@ -154,14 +160,16 @@ public class EditCustomFlatLevelScreen extends Screen {
             this.settings[2] = config.hasStructures();
             this.settings[3] = config.hasLakes();
             this.settings[4] = config.generateOres();
+            this.settings[5] = config.reduceUndergroundBiomes();
         }
 
         public CustomFlatGeneratorConfig getConfig() {
-            return new CustomFlatGeneratorConfig(config.getGenerationShapeConfig(), config.getLayerCount(),
-                    this.settings[0], this.settings[1], this.settings[2], this.settings[3], this.settings[4],
-                    config.getLayers(),
-                    config.getBiomes(), config.getDensityFunctions(), config.getNoises()
+            var newConfig = new CustomFlatGeneratorConfig(config.getGenerationShapeConfig(), config.getLayerCount(),
+                    settings[0], settings[1], settings[2], settings[3], settings[4],
+                    config.getLayers(), config.getBiomes(), config.getDensityFunctions(), config.getNoises()
             );
+            newConfig.setReduceUndergroundBiomes(settings[5]);
+            return newConfig;
         }
     }
 }

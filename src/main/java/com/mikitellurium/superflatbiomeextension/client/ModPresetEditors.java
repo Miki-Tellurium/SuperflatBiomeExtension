@@ -1,5 +1,6 @@
 package com.mikitellurium.superflatbiomeextension.client;
 
+import com.mikitellurium.superflatbiomeextension.registry.ModMultiNoiseBiomeSourceParameterLists;
 import com.mikitellurium.superflatbiomeextension.registry.ModWorldPresets;
 import com.mikitellurium.superflatbiomeextension.worldgen.CustomFlatChunkGenerator;
 import com.mikitellurium.superflatbiomeextension.worldgen.CustomFlatGeneratorConfig;
@@ -11,7 +12,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.biome.MultiNoiseBiomeSource;
 import net.minecraft.world.level.biome.MultiNoiseBiomeSourceParameterList;
 import net.minecraft.world.level.biome.MultiNoiseBiomeSourceParameterLists;
@@ -33,14 +33,14 @@ public class ModPresetEditors {
                 ? customGenerator.getConfig() : CustomFlatGeneratorConfig.createDefault(registryAccess);
         return new EditCustomFlatLevelScreen(parent, config, (newConfig) -> {
             ChunkGenerator newGenerator = createFlatGenerator(newConfig, registryAccess);
-            parent.getUiState().updateDimensions((registryAccess1, dimensions) -> dimensions.replaceOverworldGenerator(registryAccess1, newGenerator));
+            parent.getUiState().updateDimensions((lookup, dimensions) -> dimensions.replaceOverworldGenerator(lookup, newGenerator));
         });
     }
 
     public static ChunkGenerator createFlatGenerator(CustomFlatGeneratorConfig config, RegistryAccess registryAccess) {
-        Holder<MultiNoiseBiomeSourceParameterList> parameterList = registryAccess.lookupOrThrow(
-                Registries.MULTI_NOISE_BIOME_SOURCE_PARAMETER_LIST).getOrThrow(MultiNoiseBiomeSourceParameterLists.OVERWORLD);
-        BiomeSource biomeSource = MultiNoiseBiomeSource.createFromPreset(parameterList);
-        return new CustomFlatChunkGenerator(biomeSource, config);
+        ResourceKey<MultiNoiseBiomeSourceParameterList> key = config.reduceUndergroundBiomes() ?
+                ModMultiNoiseBiomeSourceParameterLists.REDUCED_UNDERGROUND_BIOMES : MultiNoiseBiomeSourceParameterLists.OVERWORLD;
+        Holder<MultiNoiseBiomeSourceParameterList> parameterList = registryAccess.lookupOrThrow(Registries.MULTI_NOISE_BIOME_SOURCE_PARAMETER_LIST).getOrThrow(key);
+        return new CustomFlatChunkGenerator(MultiNoiseBiomeSource.createFromPreset(parameterList), config);
     }
 }
