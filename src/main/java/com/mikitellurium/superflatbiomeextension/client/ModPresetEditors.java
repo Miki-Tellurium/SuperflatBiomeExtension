@@ -37,7 +37,7 @@ public class ModPresetEditors {
         });
     }
 
-    public static ChunkGenerator createFlatGenerator(CustomFlatGeneratorConfig config, RegistryAccess registryAccess) {
+    private static ChunkGenerator createFlatGenerator(CustomFlatGeneratorConfig config, RegistryAccess registryAccess) {
         ResourceKey<MultiNoiseBiomeSourceParameterList> key = config.reduceUndergroundBiomes() ?
                 ModMultiNoiseBiomeSourceParameterLists.REDUCED_UNDERGROUND_BIOMES : MultiNoiseBiomeSourceParameterLists.OVERWORLD;
         Holder<MultiNoiseBiomeSourceParameterList> parameterList = registryAccess.lookupOrThrow(Registries.MULTI_NOISE_BIOME_SOURCE_PARAMETER_LIST).getOrThrow(key);

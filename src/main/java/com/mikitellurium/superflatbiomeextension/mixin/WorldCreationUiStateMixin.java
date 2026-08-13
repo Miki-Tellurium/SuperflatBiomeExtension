@@ -3,6 +3,7 @@ package com.mikitellurium.superflatbiomeextension.mixin;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mikitellurium.superflatbiomeextension.client.ModPresetEditors;
+import com.mikitellurium.superflatbiomeextension.util.FastId;
 import net.minecraft.client.gui.screens.worldselection.PresetEditor;
 import net.minecraft.client.gui.screens.worldselection.WorldCreationUiState;
 import net.minecraft.resources.ResourceKey;
@@ -18,10 +19,11 @@ public abstract class WorldCreationUiStateMixin {
     @SuppressWarnings("unchecked")
     @WrapOperation(method = {"getPresetEditor", "updatePresetLists"}, at = @At(value = "INVOKE", target = "Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;"))
     private <V> V wrapOperation$getPresetEditor(Map<Optional<ResourceKey<WorldPreset>>, PresetEditor> map, Object key, Operation<PresetEditor> original) {
-        PresetEditor editor = original.call(map, key);
-        if (editor == null) {
-            editor = ModPresetEditors.EDITORS.get((Optional<ResourceKey<WorldPreset>>) key);
+        Optional<ResourceKey<WorldPreset>> optional = (Optional<ResourceKey<WorldPreset>>) key;
+        var finalmap = map;
+        if (optional.isPresent() && optional.get().identifier().getNamespace().equals(FastId.modId())) {
+            finalmap = ModPresetEditors.EDITORS;
         }
-        return (V) editor;
+        return (V) original.call(finalmap, key);
     }
 }
