@@ -23,7 +23,21 @@
           "has_features": true,
           "has_structures": true,
           "has_lava_lakes": false,
-          "generate_ores": false
+          "generate_ores": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:deepslate",
+              "height": 31
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 32
+            }
+          ]
         }
       }
     },
