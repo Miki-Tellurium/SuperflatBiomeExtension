@@ -45,7 +45,7 @@ public class ModSurfaceRuleData {
     private static final SurfaceRules.RuleSource NETHER_WART_BLOCK = stateRule(Blocks.NETHER_WART_BLOCK);
     private static final SurfaceRules.RuleSource CRIMSON_NYLIUM = stateRule(Blocks.CRIMSON_NYLIUM);
 
-    public static SurfaceRules.RuleSource overworld(HolderGetter<Biome> biomes, int surfaceY, boolean generateWater) {
+    public static SurfaceRules.RuleSource overworld(HolderGetter<Biome> biomes, int surfaceY, boolean surfaceFluid) {
         SurfaceYGetter mapY = (i) -> surfaceY + i;
         ImmutableList.Builder<SurfaceRules.RuleSource> builder = new ImmutableList.Builder<>();
         SurfaceRules.RuleSource grassRule = SurfaceRules.sequence(
@@ -114,28 +114,28 @@ public class ModSurfaceRuleData {
                 SurfaceRules.ifTrue(
                         SurfaceRules.isBiome(biomes, Biomes.RIVER, Biomes.LUKEWARM_OCEAN, Biomes.DEEP_LUKEWARM_OCEAN, Biomes.WARM_OCEAN),
                         SurfaceRules.sequence(
-                                topToBottomInclusive(mapY.get(-1), mapY.get(-1), generateWater ? WATER : SAND),
+                                topToBottomInclusive(mapY.get(-1), mapY.get(-1), surfaceFluid ? WATER : SAND),
                                 sandFloorRule
                         )
                 ),
                 SurfaceRules.ifTrue(
                         SurfaceRules.isBiome(biomes, Biomes.FROZEN_RIVER),
                         SurfaceRules.sequence(
-                                topToBottomInclusive(mapY.get(-1), mapY.get(-1), generateWater ? ICE : SAND),
+                                topToBottomInclusive(mapY.get(-1), mapY.get(-1), surfaceFluid ? ICE : SAND),
                                 sandFloorRule
                         )
                 ),
                 SurfaceRules.ifTrue(
                         SurfaceRules.isBiome(biomes, Biomes.OCEAN, Biomes.DEEP_OCEAN, Biomes.COLD_OCEAN, Biomes.DEEP_COLD_OCEAN),
                         SurfaceRules.sequence(
-                                topToBottomInclusive(mapY.get(-1), mapY.get(-1), generateWater ? WATER : GRAVEL),
+                                topToBottomInclusive(mapY.get(-1), mapY.get(-1), surfaceFluid ? WATER : GRAVEL),
                                 gravelFloorRule
                         )
                 ),
                 SurfaceRules.ifTrue(
                         SurfaceRules.isBiome(biomes, Biomes.FROZEN_OCEAN, Biomes.DEEP_FROZEN_OCEAN),
                         SurfaceRules.sequence(
-                                topToBottomInclusive(mapY.get(-1), mapY.get(-1), generateWater ? ICE : GRAVEL),
+                                topToBottomInclusive(mapY.get(-1), mapY.get(-1), surfaceFluid ? ICE : GRAVEL),
                                 gravelFloorRule
                         )
                 ),
@@ -167,7 +167,7 @@ public class ModSurfaceRuleData {
                                 ),
                                 SurfaceRules.ifTrue(
                                         SurfaceRules.yBlockCheck(VerticalAnchor.absolute(mapY.get(-1)), 0),
-                                        SurfaceRules.ifTrue(SurfaceRules.noiseCondition2d(Noises.SWAMP, 0.0), generateWater ? WATER : MUD)
+                                        SurfaceRules.ifTrue(SurfaceRules.noiseCondition2d(Noises.SWAMP, 0.0), surfaceFluid ? WATER : MUD)
                                 )
                         )
                 ),
@@ -175,7 +175,7 @@ public class ModSurfaceRuleData {
                         SurfaceRules.isBiome(biomes, Biomes.SWAMP),
                         SurfaceRules.ifTrue(
                                 SurfaceRules.yBlockCheck(VerticalAnchor.absolute(mapY.get(-1)), 0),
-                                SurfaceRules.ifTrue(SurfaceRules.noiseCondition2d(Noises.SWAMP, 0.0), generateWater ? WATER : GRASS_BLOCK)
+                                SurfaceRules.ifTrue(SurfaceRules.noiseCondition2d(Noises.SWAMP, 0.0), surfaceFluid ? WATER : GRASS_BLOCK)
                         )
                 ),
                 SurfaceRules.ifTrue(
@@ -245,7 +245,7 @@ public class ModSurfaceRuleData {
                 SurfaceRules.ifTrue(
                         SurfaceRules.isBiome(biomes, Biomes.SULFUR_CAVES),
                         topToBottomInclusive(mapY.get(-1), mapY.get(-5),
-                            SurfaceRules.sequence(sulfurCaveBands, STONE)
+                                SurfaceRules.sequence(sulfurCaveBands, STONE)
                         )
                 ),
                 grassRule,
@@ -255,7 +255,7 @@ public class ModSurfaceRuleData {
         return SurfaceRules.sequence(builder.build().toArray(SurfaceRules.RuleSource[]::new));
     }
 
-    public static SurfaceRules.RuleSource nether(final HolderGetter<Biome> biomes, int surfaceY) {
+    public static SurfaceRules.RuleSource nether(final HolderGetter<Biome> biomes, int surfaceY, boolean surfaceFluid) {
         SurfaceYGetter mapY = (i) -> surfaceY + i;
         SurfaceRules.ConditionSource closeToCeiling = SurfaceRules.yBlockCheck(VerticalAnchor.belowTop(5), 0);
         SurfaceRules.ConditionSource netherrack = SurfaceRules.noiseCondition2d(Noises.NETHERRACK, 0.54);
@@ -266,10 +266,12 @@ public class ModSurfaceRuleData {
 
         return SurfaceRules.sequence(
                 SurfaceRules.ifTrue(closeToCeiling, NETHERRACK),
-                SurfaceRules.ifTrue(
-                        SurfaceRules.ON_FLOOR,
-                        SurfaceRules.ifTrue(belowLakeLevel, SurfaceRules.ifTrue(lavaLake, LAVA))
-                ),
+
+                SurfaceRules.ifTrue(DirectConditionSource.of(surfaceFluid),
+                        SurfaceRules.ifTrue(
+                                SurfaceRules.ON_FLOOR,
+                                SurfaceRules.ifTrue(belowLakeLevel, SurfaceRules.ifTrue(lavaLake, LAVA))
+                        )),
                 SurfaceRules.ifTrue(
                         SurfaceRules.isBiome(biomes, Biomes.BASALT_DELTAS),
                         SurfaceRules.sequence(

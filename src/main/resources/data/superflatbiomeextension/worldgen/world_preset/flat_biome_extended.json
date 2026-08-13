@@ -20,7 +20,7 @@
             }
           },
           "noise_settings": "minecraft:surface",
-          "generate_water": true,
+          "surface_fluid": true,
           "has_features": true,
           "has_structures": true,
           "has_lava_lakes": false,
@@ -62,7 +62,7 @@
             }
           },
           "noise_settings": "minecraft:nether",
-          "generate_water": false,
+          "surface_fluid": true,
           "has_features": true,
           "has_structures": true,
           "has_lava_lakes": true,

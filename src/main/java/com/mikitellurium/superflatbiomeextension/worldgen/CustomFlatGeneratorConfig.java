@@ -37,7 +37,7 @@ public class CustomFlatGeneratorConfig {
                     BlockState.CODEC.fieldOf("default_block").forGetter((config) -> config.defaultBlock),
                     BlockState.CODEC.fieldOf("default_fluid").forGetter((config) -> config.defaultFluid),
                     SurfaceRuleProvider.CODEC.fieldOf("surface_rule").forGetter((config) -> config.surfaceRule),
-                    Codec.BOOL.fieldOf("generate_water").forGetter((config) -> config.generateWater),
+                    Codec.BOOL.fieldOf("surface_fluid").forGetter((config) -> config.surfaceFluid),
                     Codec.BOOL.fieldOf("has_features").forGetter((config) -> config.hasFeatures),
                     Codec.BOOL.fieldOf("has_structures").forGetter(CustomFlatGeneratorConfig::hasStructures),
                     Codec.BOOL.fieldOf("has_lava_lakes").forGetter(CustomFlatGeneratorConfig::hasLakes),
@@ -52,7 +52,7 @@ public class CustomFlatGeneratorConfig {
     private final BlockState defaultBlock;
     private final BlockState defaultFluid;
     private final Holder<SurfaceRuleProvider> surfaceRule;
-    private final boolean generateWater;
+    private final boolean surfaceFluid;
     private final boolean hasFeatures;
     private final Map<Integer, FeatureStepCheck> featureChecks;
     private final HolderGetter<Biome> biomes;
@@ -72,7 +72,7 @@ public class CustomFlatGeneratorConfig {
         this.surfaceRule = surfaceRule;
         this.defaultBlock = defaultBlock;
         this.defaultFluid = defaultFluid;
-        this.generateWater = generateWater;
+        this.surfaceFluid = generateWater;
         this.hasFeatures = hasFeatures;
         this.featureChecks = Map.of(
                 GenerationStep.Decoration.LAKES.ordinal(), new FeatureStepCheck(hasLakes, GenerationStep.Decoration.LAKES),
@@ -113,7 +113,7 @@ public class CustomFlatGeneratorConfig {
                 defaultBlock,
                 defaultFluid,
                 createSurfaceNoiseRouter(this.densityFunctions, this.noises),
-                surfaceRule.value().apply(this.biomes, surfaceY, this.generateWater()),
+                surfaceRule.value().apply(this.biomes, surfaceY, this.surfaceFluid()),
                 FLAT_SPAWN_TARGET,
                 surfaceY - 1,
                 false,
@@ -209,8 +209,8 @@ public class CustomFlatGeneratorConfig {
         return this.noises;
     }
 
-    public boolean generateWater() {
-        return this.generateWater;
+    public boolean surfaceFluid() {
+        return this.surfaceFluid;
     }
 
     public boolean hasFeatures() {

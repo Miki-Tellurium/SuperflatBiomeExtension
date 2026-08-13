@@ -14,7 +14,7 @@ public class ModSurfaceRuleProviders {
     public static final Registry<SurfaceRuleProvider> REGISTRY = FabricRegistryBuilder.create(REGISTRY_KEY).attribute(RegistryAttribute.OPTIONAL).buildAndRegister();
 
     public static final SurfaceRuleProvider OVERWORLD_FLAT = ModSurfaceRuleData::overworld;
-    public static final SurfaceRuleProvider NETHER_FLAT = (b, y, w) -> ModSurfaceRuleData.nether(b, y);
+    public static final SurfaceRuleProvider NETHER_FLAT = ModSurfaceRuleData::nether;
     public static final SurfaceRuleProvider END = (b, y, w) -> SurfaceRuleData.end();
 
     public static void register() {

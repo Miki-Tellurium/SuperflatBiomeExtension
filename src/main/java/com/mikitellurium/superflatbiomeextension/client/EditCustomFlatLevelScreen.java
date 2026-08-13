@@ -71,9 +71,9 @@ public class EditCustomFlatLevelScreen extends Screen {
         public SettingsListWidget() {
             super(Minecraft.getInstance(), EditCustomFlatLevelScreen.this.width, EditCustomFlatLevelScreen.this.layout.getContentHeight(), EditCustomFlatLevelScreen.this.layout.getHeaderHeight(), 24);
             this.addEntry(new SettingWidget<>(
-                    Component.translatable("createWorld.superflatbiomeextension.customize.flat.generate_water"),
+                    Component.translatable("createWorld.superflatbiomeextension.customize.flat.surface_fluid"),
                     CycleButton.onOffBuilder(config.settings[0]).displayOnlyValue(),
-                    Tooltip.create(Component.translatable("createWorld.superflatbiomeextension.customize.flat.tooltip.generate_water")),
+                    Tooltip.create(Component.translatable("createWorld.superflatbiomeextension.customize.flat.tooltip.surface_fluid")),
                     (button, newValue) -> config.settings[0] = newValue
             ));
             this.addEntry(new SettingWidget<>(
@@ -155,7 +155,7 @@ public class EditCustomFlatLevelScreen extends Screen {
 
         ConfigStorage(CustomFlatGeneratorConfig config) {
             this.config = config;
-            this.settings[0] = config.generateWater();
+            this.settings[0] = config.surfaceFluid();
             this.settings[1] = config.hasFeatures();
             this.settings[2] = config.hasStructures();
             this.settings[3] = config.hasLakes();
