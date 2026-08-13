@@ -23,7 +23,7 @@ public abstract class ChunkMapMixin {
     private RandomState wrapOperation$setRandomState(NoiseGeneratorSettings noiseGeneratorSettings, HolderGetter<NormalNoise.NoiseParameters> noiseParametersLookup, long seed, Operation<RandomState> original, @Local(argsOnly = true) ChunkGenerator chunkGenerator) {
         NoiseGeneratorSettings settings;
         if (chunkGenerator instanceof CustomFlatChunkGenerator generator) {
-            settings = generator.getConfig().getChunkGeneratorSettings();
+            settings = generator.getConfig().getNoiseGeneratorSettings();
         } else {
             settings = noiseGeneratorSettings;
         }

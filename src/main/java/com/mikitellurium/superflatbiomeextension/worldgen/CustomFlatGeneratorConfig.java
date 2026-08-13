@@ -1,8 +1,9 @@
 package com.mikitellurium.superflatbiomeextension.worldgen;
 
 import com.google.common.base.Suppliers;
+import com.mikitellurium.superflatbiomeextension.registry.ModSurfaceRuleProviders;
 import com.mikitellurium.superflatbiomeextension.registry.NoiseSettingsRegistry;
-import com.mikitellurium.superflatbiomeextension.worldgen.biome.ModSurfaceRules;
+import com.mikitellurium.superflatbiomeextension.worldgen.biome.SurfaceRuleProvider;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -19,14 +20,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.dimension.DimensionType;
-import net.minecraft.world.level.levelgen.DensityFunction;
-import net.minecraft.world.level.levelgen.DensityFunctions;
-import net.minecraft.world.level.levelgen.GenerationStep;
-import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
-import net.minecraft.world.level.levelgen.NoiseRouter;
-import net.minecraft.world.level.levelgen.NoiseRouterData;
-import net.minecraft.world.level.levelgen.NoiseSettings;
-import net.minecraft.world.level.levelgen.Noises;
+import net.minecraft.world.level.levelgen.*;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
 
@@ -42,6 +36,7 @@ public class CustomFlatGeneratorConfig {
                     FlatLayer.CODEC.listOf().optionalFieldOf("layers", createDefaultLayers()).forGetter((config) -> config.layers),
                     BlockState.CODEC.fieldOf("default_block").forGetter((config) -> config.defaultBlock),
                     BlockState.CODEC.fieldOf("default_fluid").forGetter((config) -> config.defaultFluid),
+                    SurfaceRuleProvider.CODEC.fieldOf("surface_rule").forGetter((config) -> config.surfaceRule),
                     Codec.BOOL.fieldOf("generate_water").forGetter((config) -> config.generateWater),
                     Codec.BOOL.fieldOf("has_features").forGetter((config) -> config.hasFeatures),
                     Codec.BOOL.fieldOf("has_structures").forGetter(CustomFlatGeneratorConfig::hasStructures),
@@ -56,6 +51,7 @@ public class CustomFlatGeneratorConfig {
     private final List<FlatLayer> layers;
     private final BlockState defaultBlock;
     private final BlockState defaultFluid;
+    private final Holder<SurfaceRuleProvider> surfaceRule;
     private final boolean generateWater;
     private final boolean hasFeatures;
     private final Map<Integer, FeatureStepCheck> featureChecks;
@@ -65,11 +61,15 @@ public class CustomFlatGeneratorConfig {
     private final Supplier<NoiseGeneratorSettings> settings;
     private boolean reduceUndergroundBiomes;
 
-    public CustomFlatGeneratorConfig(NoiseSettings shapeConfig, List<FlatLayer> layers, BlockState defaultBlock, BlockState defaultFluid, boolean generateWater, boolean hasFeatures, boolean hasStructures, boolean hasLakes, boolean generateOres,
-                                     HolderGetter<Biome> biomes, HolderGetter<DensityFunction> densityFunctions, HolderGetter<NormalNoise.NoiseParameters> noises) {
+    public CustomFlatGeneratorConfig(NoiseSettings shapeConfig, List<FlatLayer> layers, BlockState defaultBlock,
+                                     BlockState defaultFluid, Holder<SurfaceRuleProvider> surfaceRule,
+                                     boolean generateWater, boolean hasFeatures, boolean hasStructures, boolean hasLakes,
+                                     boolean generateOres, HolderGetter<Biome> biomes, HolderGetter<DensityFunction> densityFunctions,
+                                     HolderGetter<NormalNoise.NoiseParameters> noises) {
         this.shapeConfig = shapeConfig;
         this.layers = layers;
         validateLayerCount(this.getLayerAmount());
+        this.surfaceRule = surfaceRule;
         this.defaultBlock = defaultBlock;
         this.defaultFluid = defaultFluid;
         this.generateWater = generateWater;
@@ -87,7 +87,7 @@ public class CustomFlatGeneratorConfig {
         this.settings = Suppliers.memoize(this::createSettings);
     }
 
-    public NoiseGeneratorSettings getChunkGeneratorSettings() {
+    public NoiseGeneratorSettings getNoiseGeneratorSettings() {
         return settings.get();
     }
 
@@ -109,11 +109,11 @@ public class CustomFlatGeneratorConfig {
     private NoiseGeneratorSettings createSettings() {
         int surfaceY = shapeConfig.minY() + getLayerAmount();
         return new NoiseGeneratorSettings(
-                this.shapeConfig,
+                shapeConfig,
                 defaultBlock,
                 defaultFluid,
                 createSurfaceNoiseRouter(this.densityFunctions, this.noises),
-                ModSurfaceRules.createDefaultModSurfaceRule(this.biomes, surfaceY, this.generateWater()),
+                surfaceRule.value().apply(this.biomes, surfaceY, this.generateWater()),
                 FLAT_SPAWN_TARGET,
                 surfaceY - 1,
                 false,
@@ -193,6 +193,10 @@ public class CustomFlatGeneratorConfig {
         return defaultFluid;
     }
 
+    public Holder<SurfaceRuleProvider> getSurfaceRule() {
+        return surfaceRule;
+    }
+
     public HolderGetter<Biome> getBiomes() {
         return this.biomes;
     }
@@ -247,6 +251,7 @@ public class CustomFlatGeneratorConfig {
                 createDefaultLayers(),
                 Blocks.STONE.defaultBlockState(),
                 Blocks.WATER.defaultBlockState(),
+                Holder.direct(ModSurfaceRuleProviders.OVERWORLD_FLAT),
                 true,
                 true,
                 true,

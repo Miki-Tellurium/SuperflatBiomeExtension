@@ -71,7 +71,7 @@ public class CustomFlatChunkGenerator extends ChunkGenerator {
                 chunk,
                 randomState,
                 FlatStructureBerdifier.createWeightSampler(structureManager, chunk.getPos()),
-                this.config.getChunkGeneratorSettings(),
+                this.config.getNoiseGeneratorSettings(),
                 this.fluidLevelPicker,
                 blender
         );
@@ -83,7 +83,7 @@ public class CustomFlatChunkGenerator extends ChunkGenerator {
             WorldGenerationContext context = new WorldGenerationContext(this, region);
             Set<Holder<Biome>> possibleBiomes = collectPossibleBiomes(region, 1);
             NoiseChunk noiseChunk = protoChunk.getOrCreateNoiseChunk(chunk -> this.createNoiseChunk(chunk, structureManager, Blender.of(region), randomState));
-            NoiseGeneratorSettings chunkGeneratorSettings = this.config.getChunkGeneratorSettings();
+            NoiseGeneratorSettings chunkGeneratorSettings = this.config.getNoiseGeneratorSettings();
             ((FlatSurfaceBuilder)randomState.surfaceSystem()).mixin$setFlat();
             randomState.surfaceSystem().buildSurface(randomState, region.getBiomeManager(), chunkGeneratorSettings.useLegacyRandomSource(), context, protoChunk, noiseChunk, chunkGeneratorSettings.surfaceRule(), possibleBiomes);
         }
@@ -141,7 +141,7 @@ public class CustomFlatChunkGenerator extends ChunkGenerator {
     @Override
     public int getBaseHeight(int x, int z, Heightmap.Types heightmap, LevelHeightAccessor world, RandomState randomState) {
         for (int i = Math.min(this.config.getLayerAmount(), world.getHeight()); i >= 0; i--) {
-            BlockState blockState = this.config.getChunkGeneratorSettings().defaultBlock();
+            BlockState blockState = this.config.getNoiseGeneratorSettings().defaultBlock();
             if (heightmap.isOpaque().test(blockState)) {
                 return world.getMinY() + i;
             }
@@ -171,16 +171,16 @@ public class CustomFlatChunkGenerator extends ChunkGenerator {
 
     @Override
     public int getMinY() {
-        return this.config.getChunkGeneratorSettings().noiseSettings().minY();
+        return this.config.getNoiseGeneratorSettings().noiseSettings().minY();
     }
 
     @Override
     public int getGenDepth() {
-        return this.config.getChunkGeneratorSettings().noiseSettings().height();
+        return this.config.getNoiseGeneratorSettings().noiseSettings().height();
     }
 
     @Override
     public int getSeaLevel() {
-        return this.config.getChunkGeneratorSettings().seaLevel();
+        return this.config.getNoiseGeneratorSettings().seaLevel();
     }
 }

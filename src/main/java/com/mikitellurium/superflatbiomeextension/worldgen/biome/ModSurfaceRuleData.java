@@ -1,6 +1,7 @@
 package com.mikitellurium.superflatbiomeextension.worldgen.biome;
 
 import com.google.common.collect.ImmutableList;
+import com.mikitellurium.superflatbiomeextension.registry.ModNoises;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
@@ -10,31 +11,41 @@ import net.minecraft.world.level.levelgen.Noises;
 import net.minecraft.world.level.levelgen.SurfaceRules;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 
-public class ModSurfaceRules {
-    private static final SurfaceRules.RuleSource TERRACOTTA = block(Blocks.TERRACOTTA);
-    private static final SurfaceRules.RuleSource RED_SAND = block(Blocks.RED_SAND);
-    private static final SurfaceRules.RuleSource RED_SANDSTONE = block(Blocks.RED_SANDSTONE);
-    private static final SurfaceRules.RuleSource STONE = block(Blocks.STONE);
-    private static final SurfaceRules.RuleSource DEEPSLATE = block(Blocks.DEEPSLATE);
-    private static final SurfaceRules.RuleSource DIRT = block(Blocks.DIRT);
-    private static final SurfaceRules.RuleSource PODZOL = block(Blocks.PODZOL);
-    private static final SurfaceRules.RuleSource COARSE_DIRT = block(Blocks.COARSE_DIRT);
-    private static final SurfaceRules.RuleSource MYCELIUM = block(Blocks.MYCELIUM);
-    private static final SurfaceRules.RuleSource GRASS_BLOCK = block(Blocks.GRASS_BLOCK);
-    private static final SurfaceRules.RuleSource GRAVEL = block(Blocks.GRAVEL);
-    private static final SurfaceRules.RuleSource SAND = block(Blocks.SAND);
-    private static final SurfaceRules.RuleSource SANDSTONE = block(Blocks.SANDSTONE);
-    private static final SurfaceRules.RuleSource PACKED_ICE = block(Blocks.PACKED_ICE);
-    private static final SurfaceRules.RuleSource SNOW_BLOCK = block(Blocks.SNOW_BLOCK);
-    private static final SurfaceRules.RuleSource MUD = block(Blocks.MUD);
-    private static final SurfaceRules.RuleSource POWDER_SNOW = block(Blocks.POWDER_SNOW);
-    private static final SurfaceRules.RuleSource MOSS_BLOCK = block(Blocks.MOSS_BLOCK);
-    private static final SurfaceRules.RuleSource ICE = block(Blocks.ICE);
-    private static final SurfaceRules.RuleSource WATER = block(Blocks.WATER);
-    private static final SurfaceRules.RuleSource CINNABAR = block(Blocks.CINNABAR);
-    private static final SurfaceRules.RuleSource SULFUR = block(Blocks.SULFUR);
+public class ModSurfaceRuleData {
+    private static final SurfaceRules.RuleSource TERRACOTTA = stateRule(Blocks.TERRACOTTA);
+    private static final SurfaceRules.RuleSource RED_SAND = stateRule(Blocks.RED_SAND);
+    private static final SurfaceRules.RuleSource RED_SANDSTONE = stateRule(Blocks.RED_SANDSTONE);
+    private static final SurfaceRules.RuleSource STONE = stateRule(Blocks.STONE);
+    private static final SurfaceRules.RuleSource DEEPSLATE = stateRule(Blocks.DEEPSLATE);
+    private static final SurfaceRules.RuleSource DIRT = stateRule(Blocks.DIRT);
+    private static final SurfaceRules.RuleSource PODZOL = stateRule(Blocks.PODZOL);
+    private static final SurfaceRules.RuleSource COARSE_DIRT = stateRule(Blocks.COARSE_DIRT);
+    private static final SurfaceRules.RuleSource MYCELIUM = stateRule(Blocks.MYCELIUM);
+    private static final SurfaceRules.RuleSource GRASS_BLOCK = stateRule(Blocks.GRASS_BLOCK);
+    private static final SurfaceRules.RuleSource GRAVEL = stateRule(Blocks.GRAVEL);
+    private static final SurfaceRules.RuleSource SAND = stateRule(Blocks.SAND);
+    private static final SurfaceRules.RuleSource SANDSTONE = stateRule(Blocks.SANDSTONE);
+    private static final SurfaceRules.RuleSource PACKED_ICE = stateRule(Blocks.PACKED_ICE);
+    private static final SurfaceRules.RuleSource SNOW_BLOCK = stateRule(Blocks.SNOW_BLOCK);
+    private static final SurfaceRules.RuleSource MUD = stateRule(Blocks.MUD);
+    private static final SurfaceRules.RuleSource POWDER_SNOW = stateRule(Blocks.POWDER_SNOW);
+    private static final SurfaceRules.RuleSource MOSS_BLOCK = stateRule(Blocks.MOSS_BLOCK);
+    private static final SurfaceRules.RuleSource ICE = stateRule(Blocks.ICE);
+    private static final SurfaceRules.RuleSource WATER = stateRule(Blocks.WATER);
+    private static final SurfaceRules.RuleSource CINNABAR = stateRule(Blocks.CINNABAR);
+    private static final SurfaceRules.RuleSource SULFUR = stateRule(Blocks.SULFUR);
+    private static final SurfaceRules.RuleSource LAVA = stateRule(Blocks.LAVA);
+    private static final SurfaceRules.RuleSource NETHERRACK = stateRule(Blocks.NETHERRACK);
+    private static final SurfaceRules.RuleSource SOUL_SAND = stateRule(Blocks.SOUL_SAND);
+    private static final SurfaceRules.RuleSource SOUL_SOIL = stateRule(Blocks.SOUL_SOIL);
+    private static final SurfaceRules.RuleSource BASALT = stateRule(Blocks.BASALT);
+    private static final SurfaceRules.RuleSource BLACKSTONE = stateRule(Blocks.BLACKSTONE);
+    private static final SurfaceRules.RuleSource WARPED_WART_BLOCK = stateRule(Blocks.WARPED_WART_BLOCK);
+    private static final SurfaceRules.RuleSource WARPED_NYLIUM = stateRule(Blocks.WARPED_NYLIUM);
+    private static final SurfaceRules.RuleSource NETHER_WART_BLOCK = stateRule(Blocks.NETHER_WART_BLOCK);
+    private static final SurfaceRules.RuleSource CRIMSON_NYLIUM = stateRule(Blocks.CRIMSON_NYLIUM);
 
-    public static SurfaceRules.RuleSource createDefaultModSurfaceRule(HolderGetter<Biome> biomes, int surfaceY, boolean generateWater) {
+    public static SurfaceRules.RuleSource overworld(HolderGetter<Biome> biomes, int surfaceY, boolean generateWater) {
         SurfaceYGetter mapY = (i) -> surfaceY + i;
         ImmutableList.Builder<SurfaceRules.RuleSource> builder = new ImmutableList.Builder<>();
         SurfaceRules.RuleSource grassRule = SurfaceRules.sequence(
@@ -244,6 +255,62 @@ public class ModSurfaceRules {
         return SurfaceRules.sequence(builder.build().toArray(SurfaceRules.RuleSource[]::new));
     }
 
+    public static SurfaceRules.RuleSource nether(final HolderGetter<Biome> biomes, int surfaceY) {
+        SurfaceYGetter mapY = (i) -> surfaceY + i;
+        SurfaceRules.ConditionSource closeToCeiling = SurfaceRules.yBlockCheck(VerticalAnchor.belowTop(5), 0);
+        SurfaceRules.ConditionSource netherrack = SurfaceRules.noiseCondition2d(Noises.NETHERRACK, 0.54);
+        SurfaceRules.ConditionSource netherWart = SurfaceRules.noiseCondition2d(Noises.NETHER_WART, 1.17);
+        SurfaceRules.ConditionSource netherStateSelector = SurfaceRules.noiseCondition2d(Noises.NETHER_STATE_SELECTOR, 0.0);
+        SurfaceRules.ConditionSource lavaLake = SurfaceRules.noiseCondition2d(ModNoises.NETHER_LAVA_LAKE, 0.3);
+        SurfaceRules.ConditionSource belowLakeLevel = SurfaceRules.yBlockCheck(VerticalAnchor.absolute(mapY.get(-1)), 0);
+
+        return SurfaceRules.sequence(
+                SurfaceRules.ifTrue(closeToCeiling, NETHERRACK),
+                SurfaceRules.ifTrue(
+                        SurfaceRules.ON_FLOOR,
+                        SurfaceRules.ifTrue(belowLakeLevel, SurfaceRules.ifTrue(lavaLake, LAVA))
+                ),
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.BASALT_DELTAS),
+                        SurfaceRules.sequence(
+                                SurfaceRules.ifTrue(SurfaceRules.UNDER_CEILING, BASALT),
+                                SurfaceRules.ifTrue(SurfaceRules.UNDER_FLOOR, SurfaceRules.sequence(SurfaceRules.ifTrue(netherStateSelector, BASALT), BLACKSTONE))
+                        )
+                ),
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(biomes, Biomes.SOUL_SAND_VALLEY),
+                        SurfaceRules.sequence(
+                                SurfaceRules.ifTrue(SurfaceRules.UNDER_CEILING, SurfaceRules.sequence(SurfaceRules.ifTrue(netherStateSelector, SOUL_SAND), SOUL_SOIL)),
+                                SurfaceRules.ifTrue(SurfaceRules.UNDER_FLOOR, SurfaceRules.sequence(SurfaceRules.ifTrue(netherStateSelector, SOUL_SAND), SOUL_SOIL))
+                        )
+                ),
+                SurfaceRules.ifTrue(
+                        SurfaceRules.ON_FLOOR,
+                        SurfaceRules.sequence(
+                                SurfaceRules.ifTrue(
+                                        SurfaceRules.isBiome(biomes, Biomes.WARPED_FOREST),
+                                        SurfaceRules.ifTrue(
+                                                SurfaceRules.not(netherrack),
+                                                atHeight(mapY.get(-1), SurfaceRules.sequence(SurfaceRules.ifTrue(netherWart, WARPED_WART_BLOCK), WARPED_NYLIUM))
+                                        )
+                                ),
+                                SurfaceRules.ifTrue(
+                                        SurfaceRules.isBiome(biomes, Biomes.CRIMSON_FOREST),
+                                        SurfaceRules.ifTrue(
+                                                SurfaceRules.not(netherrack),
+                                                atHeight(mapY.get(-1), SurfaceRules.sequence(SurfaceRules.ifTrue(netherWart, NETHER_WART_BLOCK), CRIMSON_NYLIUM))
+                                        )
+                                )
+                        )
+                ),
+                NETHERRACK
+        );
+    }
+
+    private static SurfaceRules.RuleSource atHeight(int height, SurfaceRules.RuleSource rule) {
+        return topToBottomInclusive(height, height, rule);
+    }
+
     private static SurfaceRules.RuleSource topToBottomInclusive(int top, int bottom, SurfaceRules.RuleSource rule) {
         return SurfaceRules.ifTrue(
                 SurfaceRules.yBlockCheck(VerticalAnchor.absolute(bottom), 0),
@@ -255,12 +322,10 @@ public class ModSurfaceRules {
         return SurfaceRules.noiseCondition2d(Noises.SURFACE, min / 8.25, Double.MAX_VALUE);
     }
 
-    private static SurfaceRules.RuleSource block(Block block) {
+    private static SurfaceRules.RuleSource stateRule(Block block) {
         return SurfaceRules.state(block.defaultBlockState());
     }
 
     @FunctionalInterface
-    interface SurfaceYGetter {
-        int get(int i);
-    }
+    interface SurfaceYGetter { int get(int i);}
 }

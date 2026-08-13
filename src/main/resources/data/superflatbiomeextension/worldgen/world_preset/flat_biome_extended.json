@@ -9,6 +9,7 @@
           "preset": "minecraft:overworld"
         },
         "config": {
+          "surface_rule": "superflatbiomeextension:overworld_flat",
           "default_block": {
             "Name": "minecraft:stone"
           },
@@ -18,7 +19,7 @@
               "level": "0"
             }
           },
-          "shape_config" : "minecraft:surface",
+          "noise_settings": "minecraft:surface",
           "generate_water": true,
           "has_features": true,
           "has_structures": true,
@@ -41,6 +42,44 @@
         }
       }
     },
+    "minecraft:the_nether": {
+      "type": "minecraft:the_nether",
+      "generator": {
+        "type": "superflatbiomeextension:flat_biome_extended",
+        "biome_source": {
+          "type": "minecraft:multi_noise",
+          "preset": "minecraft:nether"
+        },
+        "config": {
+          "surface_rule": "superflatbiomeextension:nether_flat",
+          "default_block": {
+            "Name": "minecraft:netherrack"
+          },
+          "default_fluid": {
+            "Name": "minecraft:lava",
+            "Properties": {
+              "level": "0"
+            }
+          },
+          "noise_settings": "minecraft:nether",
+          "generate_water": false,
+          "has_features": true,
+          "has_structures": true,
+          "has_lava_lakes": true,
+          "generate_ores": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:netherrack",
+              "height": 63
+            }
+          ]
+        }
+      }
+    },
     "minecraft:the_end": {
       "type": "minecraft:the_end",
       "generator": {
@@ -49,17 +88,6 @@
           "type": "minecraft:the_end"
         },
         "settings": "minecraft:end"
-      }
-    },
-    "minecraft:the_nether": {
-      "type": "minecraft:the_nether",
-      "generator": {
-        "type": "minecraft:noise",
-        "biome_source": {
-          "type": "minecraft:multi_noise",
-          "preset": "minecraft:nether"
-        },
-        "settings": "minecraft:nether"
       }
     }
   }
