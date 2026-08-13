@@ -6,7 +6,7 @@
         "type": "superflatbiomeextension:flat_biome_extended",
         "biome_source": {
           "type": "minecraft:multi_noise",
-          "preset": "superflatbiomeextension:reduced_underground_biomes"
+          "preset": "minecraft:overworld"
         },
         "config": {
           "shape_config" : "minecraft:surface",
