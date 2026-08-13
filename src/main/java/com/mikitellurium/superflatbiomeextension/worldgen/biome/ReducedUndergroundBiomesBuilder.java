@@ -25,20 +25,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public final class ReducedUndergroundBiomesBuilder {
-    private static final float VALLEY_SIZE = 0.05F;
-    private static final float LOW_START = 0.26666668F;
-    public static final float HIGH_START = 0.4F;
-    private static final float HIGH_END = 0.93333334F;
-    private static final float PEAK_SIZE = 0.1F;
-    public static final float PEAK_START = 0.56666666F;
-    private static final float PEAK_END = 0.7666667F;
-    public static final float NEAR_INLAND_START = -0.11F;
-    public static final float MID_INLAND_START = 0.03F;
-    public static final float FAR_INLAND_START = 0.3F;
-    public static final float EROSION_INDEX_1_START = -0.78F;
-    public static final float EROSION_INDEX_2_START = -0.375F;
-    private static final float EROSION_DEEP_DARK_DRYNESS_THRESHOLD = -0.225F;
-    private static final float DEPTH_DEEP_DARK_DRYNESS_THRESHOLD = 0.9F;
     private final Climate.Parameter FULL_RANGE = Climate.Parameter.span(-1.0F, 1.0F);
     private final Climate.Parameter[] temperatures = new Climate.Parameter[]{
             Climate.Parameter.span(-1.0F, -0.45F),
