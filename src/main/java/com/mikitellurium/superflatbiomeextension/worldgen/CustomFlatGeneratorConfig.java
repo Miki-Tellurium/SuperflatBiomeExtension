@@ -40,6 +40,8 @@ public class CustomFlatGeneratorConfig {
             (instance) -> instance.group(
                     NoiseSettingsRegistry.CODEC.optionalFieldOf("noise_settings", NoiseSettingsRegistry.SURFACE).forGetter((config) -> config.shapeConfig),
                     FlatLayer.CODEC.listOf().optionalFieldOf("layers", createDefaultLayers()).forGetter((config) -> config.layers),
+                    BlockState.CODEC.fieldOf("default_block").forGetter((config) -> config.defaultBlock),
+                    BlockState.CODEC.fieldOf("default_fluid").forGetter((config) -> config.defaultFluid),
                     Codec.BOOL.fieldOf("generate_water").forGetter((config) -> config.generateWater),
                     Codec.BOOL.fieldOf("has_features").forGetter((config) -> config.hasFeatures),
                     Codec.BOOL.fieldOf("has_structures").forGetter(CustomFlatGeneratorConfig::hasStructures),
@@ -52,6 +54,8 @@ public class CustomFlatGeneratorConfig {
     );
     private final NoiseSettings shapeConfig;
     private final List<FlatLayer> layers;
+    private final BlockState defaultBlock;
+    private final BlockState defaultFluid;
     private final boolean generateWater;
     private final boolean hasFeatures;
     private final Map<Integer, FeatureStepCheck> featureChecks;
@@ -61,11 +65,13 @@ public class CustomFlatGeneratorConfig {
     private final Supplier<NoiseGeneratorSettings> settings;
     private boolean reduceUndergroundBiomes;
 
-    public CustomFlatGeneratorConfig(NoiseSettings shapeConfig, List<FlatLayer> layers, boolean generateWater, boolean hasFeatures, boolean hasStructures, boolean hasLakes, boolean generateOres,
+    public CustomFlatGeneratorConfig(NoiseSettings shapeConfig, List<FlatLayer> layers, BlockState defaultBlock, BlockState defaultFluid, boolean generateWater, boolean hasFeatures, boolean hasStructures, boolean hasLakes, boolean generateOres,
                                      HolderGetter<Biome> biomes, HolderGetter<DensityFunction> densityFunctions, HolderGetter<NormalNoise.NoiseParameters> noises) {
         this.shapeConfig = shapeConfig;
         this.layers = layers;
         validateLayerCount(this.getLayerAmount());
+        this.defaultBlock = defaultBlock;
+        this.defaultFluid = defaultFluid;
         this.generateWater = generateWater;
         this.hasFeatures = hasFeatures;
         this.featureChecks = Map.of(
@@ -104,8 +110,8 @@ public class CustomFlatGeneratorConfig {
         int surfaceY = shapeConfig.minY() + getLayerAmount();
         return new NoiseGeneratorSettings(
                 this.shapeConfig,
-                Blocks.STONE.defaultBlockState(),
-                Blocks.WATER.defaultBlockState(),
+                defaultBlock,
+                defaultFluid,
                 createSurfaceNoiseRouter(this.densityFunctions, this.noises),
                 ModSurfaceRules.createDefaultModSurfaceRule(this.biomes, surfaceY, this.generateWater()),
                 FLAT_SPAWN_TARGET,
@@ -179,6 +185,14 @@ public class CustomFlatGeneratorConfig {
         return this.layers.stream().mapToInt(FlatLayer::height).sum();
     }
 
+    public BlockState getDefaultBlock() {
+        return defaultBlock;
+    }
+
+    public BlockState getDefaultFluid() {
+        return defaultFluid;
+    }
+
     public HolderGetter<Biome> getBiomes() {
         return this.biomes;
     }
@@ -231,6 +245,8 @@ public class CustomFlatGeneratorConfig {
         return new CustomFlatGeneratorConfig(
                 NoiseSettingsRegistry.SURFACE,
                 createDefaultLayers(),
+                Blocks.STONE.defaultBlockState(),
+                Blocks.WATER.defaultBlockState(),
                 true,
                 true,
                 true,
@@ -238,8 +254,7 @@ public class CustomFlatGeneratorConfig {
                 false,
                 holderLookup.lookupOrThrow(Registries.BIOME),
                 holderLookup.lookupOrThrow(Registries.DENSITY_FUNCTION),
-                holderLookup.lookupOrThrow(Registries.NOISE)
-        );
+                holderLookup.lookupOrThrow(Registries.NOISE));
     }
 
     private static List<FlatLayer> createDefaultLayers() {

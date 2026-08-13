@@ -9,6 +9,15 @@
           "preset": "minecraft:overworld"
         },
         "config": {
+          "default_block": {
+            "Name": "minecraft:stone"
+          },
+          "default_fluid": {
+            "Name": "minecraft:water",
+            "Properties": {
+              "level": "0"
+            }
+          },
           "shape_config" : "minecraft:surface",
           "generate_water": true,
           "has_features": true,
