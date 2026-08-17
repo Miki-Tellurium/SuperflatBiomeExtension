@@ -5,7 +5,6 @@
   "mixins": [
     "ChunkMapMixin",
     "MultiNoiseBiomeSourceParameterListPresetAccessor",
-    "StructureAccessors$Jigsaw",
     "StructureAccessors$OceanMonumentBase",
     "StructureFixMixin$OceanMonument",
     "StructureFixMixin$WoodlandMansion",
