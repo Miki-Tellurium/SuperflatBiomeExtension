@@ -1,6 +1,7 @@
 plugins {
 	id 'fabric-loom' version "${loom_version}"
 	id 'maven-publish'
+	id 'org.jetbrains.kotlin.jvm' version "2.4.0"
 }
 
 version = project.mod_version
@@ -12,6 +13,25 @@ base {
 
 loom {
 	accessWidenerPath = file("src/main/resources/${archives_base_name}.accesswidener")
+
+	splitEnvironmentSourceSets()
+
+	mods {
+		"${archives_base_name}" {
+			sourceSet sourceSets.main
+			sourceSet sourceSets.client
+		}
+	}
+
+	runs.configureEach {
+		setGenerateRunConfig true
+	}
+}
+
+fabricApi {
+	configureDataGeneration() {
+		client = true
+	}
 }
 
 repositories {
@@ -19,6 +39,7 @@ repositories {
 		name = "Modrinth"
 		url = "https://api.modrinth.com/maven"
 	}
+	mavenCentral()
 }
 
 dependencies {
@@ -48,13 +69,8 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 java {
-	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-	// if it is present.
-	// If you remove this line, sources will not be generated.
 	withSourcesJar()
 
-	sourceCompatibility = JavaVersion.VERSION_25
-	targetCompatibility = JavaVersion.VERSION_25
 }
 
 jar {
@@ -66,7 +82,6 @@ jar {
 	}
 }
 
-// configure the maven publication
 publishing {
 	publications {
 		create("mavenJava", MavenPublication) {
@@ -75,11 +90,10 @@ publishing {
 		}
 	}
 
-	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
 	repositories {
-		// Add repositories to publish to here.
-		// Notice: This block does NOT have the same function as the block in the top level.
-		// The repositories here will be used for publishing your artifact, not for
-		// retrieving dependencies.
 	}
+}
+
+kotlin {
+	jvmToolchain(25)
 }

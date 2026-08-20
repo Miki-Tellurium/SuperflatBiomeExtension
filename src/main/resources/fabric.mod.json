@@ -24,6 +24,9 @@
 		],
 		"client" : [
 			"com.mikitellurium.superflatbiomeextension.SuperflatBiomeExtensionClient"
+		],
+		"fabric-datagen": [
+			"com.mikitellurium.superflatbiomeextension.DataGenerator"
 		]
 	},
 	"mixins": [

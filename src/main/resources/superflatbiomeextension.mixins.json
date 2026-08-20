@@ -5,6 +5,8 @@
   "mixins": [
     "ChunkMapMixin",
     "MultiNoiseBiomeSourceParameterListPresetAccessor",
+    "PlacedFeatureFixMixin$Geode",
+    "PlacedFeatureFixMixin$IceSpike",
     "StructureAccessors$OceanMonumentBase",
     "StructureFixMixin$OceanMonument",
     "StructureFixMixin$WoodlandMansion",
@@ -12,8 +14,6 @@
     "WorldDimensionsMixin"
   ],
   "client": [
-    "PlacedFeatureFixMixin$Geode",
-    "PlacedFeatureFixMixin$IceSpike",
     "WorldCreationUiStateMixin"
   ],
   "injectors": {
