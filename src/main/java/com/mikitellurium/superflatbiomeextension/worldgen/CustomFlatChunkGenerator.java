@@ -8,7 +8,6 @@ import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.util.Util;
 import net.minecraft.world.level.ChunkPos;
@@ -22,15 +21,12 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGenerator;
-import net.minecraft.world.level.chunk.ChunkGeneratorStructureState;
 import net.minecraft.world.level.levelgen.*;
 import net.minecraft.world.level.levelgen.blending.Blender;
-import net.minecraft.world.level.levelgen.structure.StructureSet;
 
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Stream;
 
 public class CustomFlatChunkGenerator extends ChunkGenerator {
     public static final MapCodec<CustomFlatChunkGenerator> CODEC = RecordCodecBuilder.mapCodec(
@@ -44,7 +40,7 @@ public class CustomFlatChunkGenerator extends ChunkGenerator {
     private final Aquifer.FluidPicker fluidLevelPicker;
 
     public CustomFlatChunkGenerator(BiomeSource biomeSource, CustomFlatGeneratorConfig config) {
-        super(biomeSource, Util.memoize(config::createGenerationSettings));
+        super(biomeSource, Util.memoize(config::createBiomeSettings));
         this.config = config;
         this.fluidLevelPicker = (x, y, z) -> new Aquifer.FluidStatus(y, Blocks.AIR.defaultBlockState());
     }
@@ -56,14 +52,6 @@ public class CustomFlatChunkGenerator extends ChunkGenerator {
 
     public CustomFlatGeneratorConfig getConfig() {
         return this.config;
-    }
-
-    @Override
-    public ChunkGeneratorStructureState createState(HolderLookup<StructureSet> structureSetRegistry, RandomState randomState, long seed) {
-        if (this.config.hasStructures()) {
-            return super.createState(structureSetRegistry, randomState, seed);
-        }
-        return ChunkGeneratorStructureState.createForFlat(randomState, seed, this.biomeSource, Stream.of());
     }
 
     private NoiseChunk createNoiseChunk(ChunkAccess chunk, StructureManager structureManager, Blender blender, RandomState randomState) {

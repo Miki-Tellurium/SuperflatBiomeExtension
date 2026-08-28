@@ -2,10 +2,10 @@ package com.mikitellurium.superflatbiomeextension.registry;
 
 public class ModRegistries {
     public static void register() {
-        NoiseSettingsRegistry.init();
+        ModSurfaceRuleProviders.register();
+        NoiseSettingsRegistry.register();
         ModChunkGenerators.register();
         ModMultiNoiseBiomeSourceParameterLists.register();
         ModSurfaceRules.register();
-        ModSurfaceRuleProviders.register();
     }
 }

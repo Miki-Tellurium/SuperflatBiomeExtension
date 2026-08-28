@@ -1,0 +1,10 @@
+{
+  "values": [
+    "minecraft:bonus_chest",
+    "minecraft:end_gateway_delayed",
+    "minecraft:end_gateway_return",
+    "minecraft:end_platform",
+    "minecraft:end_spike",
+    "minecraft:void_start_platform"
+  ]
+}

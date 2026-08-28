@@ -9,22 +9,15 @@
           "preset": "minecraft:overworld"
         },
         "config": {
-          "surface_rule": "superflatbiomeextension:overworld_flat",
-          "default_block": {
-            "Name": "minecraft:stone"
+          "dimension_type": "minecraft:overworld",
+          "has_surface_fluid": true,
+          "enabled_features": {
+            "vegetation_features": true,
+            "terrain_features": true,
+            "lake_features": false,
+            "ore_features": true,
+            "misc_features":true
           },
-          "default_fluid": {
-            "Name": "minecraft:water",
-            "Properties": {
-              "level": "0"
-            }
-          },
-          "noise_settings": "minecraft:surface",
-          "surface_fluid": true,
-          "has_features": true,
-          "has_structures": true,
-          "has_lava_lakes": false,
-          "generate_ores": false,
           "layers": [
             {
               "block": "minecraft:bedrock",
@@ -51,22 +44,15 @@
           "preset": "minecraft:nether"
         },
         "config": {
-          "surface_rule": "superflatbiomeextension:nether_flat",
-          "default_block": {
-            "Name": "minecraft:netherrack"
+          "dimension_type": "minecraft:the_nether",
+          "has_surface_fluid": true,
+          "enabled_features": {
+            "vegetation_features": true,
+            "terrain_features": true,
+            "lake_features": true,
+            "ore_features": true,
+            "misc_features":true
           },
-          "default_fluid": {
-            "Name": "minecraft:lava",
-            "Properties": {
-              "level": "0"
-            }
-          },
-          "noise_settings": "minecraft:nether",
-          "surface_fluid": true,
-          "has_features": true,
-          "has_structures": true,
-          "has_lava_lakes": true,
-          "generate_ores": false,
           "layers": [
             {
               "block": "minecraft:bedrock",

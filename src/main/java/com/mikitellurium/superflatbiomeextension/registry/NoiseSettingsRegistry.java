@@ -26,7 +26,7 @@ public class NoiseSettingsRegistry {
     public static final NoiseSettings CAVES = NoiseSettings.create(-64, 384, 1, 2);
     public static final NoiseSettings FLOATING_ISLANDS = NoiseSettings.create(0, 256, 1, 2);
 
-    public static void init() {
+    public static void register() {
         Registry.register(REGISTRY, FastId.ofMc("surface"), SURFACE);
         Registry.register(REGISTRY, FastId.ofMc("nether"), NETHER);
         Registry.register(REGISTRY, FastId.ofMc("end"), END);
